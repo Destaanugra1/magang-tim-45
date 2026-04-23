@@ -10,6 +10,8 @@ export default function ButtonBack({ title }: Props)  {
     const router = useRouter();
 
     return (
-        <button onClick={() => router.back()} className='px-5 py-y bg-black text-white rounded-xl cursor-pointer'>{title}</button>
+        <button onClick={() => router.back()} className="inline-block mt-8 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition cursor-pointer">
+            {title}
+        </button>
     )
 }

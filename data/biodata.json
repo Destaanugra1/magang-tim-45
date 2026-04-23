@@ -1,37 +1,31 @@
 [
   {
     "id": 1,
-    "foto": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80",
+    "foto": "/desta1.png",
     "namaLengkap": "Desta Anugra Pratama",
-    "alamat": "Lampung Selatan, Lampung",
-    "kampus": "Universitas Lampung"
+    "alamat": "Lampung utara, Lampung",
+    "kampus": "Universitas Muhammadiyah Kotabumi"
   },
   {
     "id": 2,
-    "foto": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80",
-    "namaLengkap": "Raka Pratama",
-    "alamat": "Bandar Lampung, Lampung",
-    "kampus": "Institut Teknologi Sumatera"
+    "foto": "/ndar.jpeg",
+    "namaLengkap": "Achmad Suhendar ",
+    "alamat": "Jl.Menteng Tenggulun, Jakarta Pusat",
+    "kampus": "Universitas Muhammadiyah Jakarta"
   },
   {
     "id": 3,
     "foto": "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=600&q=80",
-    "namaLengkap": "Nadia Putri",
+    "namaLengkap": "Adisya Ainun",
     "alamat": "Metro, Lampung",
     "kampus": "Universitas Muhammadiyah Metro"
   },
   {
     "id": 4,
     "foto": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80",
-    "namaLengkap": "Fajar Maulana",
-    "alamat": "Pringsewu, Lampung",
-    "kampus": "Universitas Teknokrat Indonesia"
-  },
-  {
-    "id": 5,
-    "foto": "https://images.unsplash.com/photo-1504593811423-6dd665756598?w=600&q=80",
-    "namaLengkap": "Dimas Saputra",
-    "alamat": "Pesawaran, Lampung",
-    "kampus": "Politeknik Negeri Lampung"
+    "namaLengkap": "Althaf Syafiq Rianto",
+    "alamat": "Bekasi Utara PD Pucung",
+    "kampus": "Muhammadiyah Jakarta"
   }
+
 ]
