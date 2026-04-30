@@ -1,87 +1,84 @@
 import ButtonBack from "@/components/ui/Buttonback";
+import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 import { getbookById } from "@/lib/book";
 import Image from "next/image";
 
+type BookTag = {
+  name: string;
+};
+
 type DetailAnggotaProps = {
-    params: {
-        id: string;
-    }
-}
+  params: {
+    id: string;
+  };
+};
 
 export default async function DetailBooks({ params }: DetailAnggotaProps) {
   const { id } = await params;
   const books = await getbookById(id);
 
   if (!books) {
-    return <h1 className="text-center mt-10">Book not found</h1>;
+    return <h1 className="mt-10 text-center">Book not found</h1>;
   }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        
-        
-        <div className="relative w-full aspect-3/4rounded-2xl overflow-hidden shadow-lg">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+        <FadeIn className="relative w-full aspect-[3/4] overflow-hidden rounded-2xl shadow-lg">
           <Image
             src={books.cover_image}
             alt={books.title}
             fill
             className="object-cover"
           />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {books.title}
-          </h1>
+        </FadeIn>
 
-          <p className="mt-2 text-sm text-gray-500">
-             {books.author?.name}
-          </p>
+        <Stagger>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{books.title}</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-             {books.category?.name}
-          </p>
+            <p className="mt-2 text-sm text-gray-500">{books.author?.name}</p>
 
-          <p className="mt-4 text-gray-600 leading-relaxed">
-            {books.summary}
-          </p>
+            <p className="mt-1 text-sm text-gray-500">
+              {books.category?.name}
+            </p>
 
-          {/* ✅ DETAILS */}
-          <div className="mt-6 space-y-2 text-sm text-gray-600">
-            <p> {books.details?.price}</p>
-            <p> {books.details?.total_pages}</p>
-            <p> {books.details?.published_date}</p>
-            <p> {books.publisher}</p>
-          </div>
+            <p className="mt-4 leading-relaxed text-gray-600">
+              {books.summary}
+            </p>
 
-        
-          <div className="mt-6 flex flex-wrap gap-2">
-            {books.tags?.map((tag: any, i: number) => (
-              <span
-                key={i}
-                className="text-xs bg-gray-200 px-3 py-1 rounded-full"
-              >
-                {tag.name}
-              </span>
-            ))}
-          </div>
+            <Stagger className="mt-6 space-y-2 text-sm text-gray-600">
+              <StaggerItem>{books.details?.price}</StaggerItem>
+              <StaggerItem>{books.details?.total_pages}</StaggerItem>
+              <StaggerItem>{books.details?.published_date}</StaggerItem>
+              <StaggerItem>{books.publisher}</StaggerItem>
+            </Stagger>
 
-            <div className="gap-4 mt-6 flex">
-            {books.buy_links?.[0] && (
-            <a
-              href={books.buy_links[0].url}
-              target="_blank"
-              className="inline-block mt-8 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition"
-            >
-              Beli Buku
-            </a>
-          )}
-        <ButtonBack  title="kembali" />
+            <Stagger className="mt-6 flex flex-wrap gap-2">
+              {books.tags?.map((tag: BookTag, i: number) => (
+                <StaggerItem
+                  key={i}
+                  className="rounded-full bg-gray-200 px-3 py-1 text-xs"
+                >
+                  {tag.name}
+                </StaggerItem>
+              ))}
+            </Stagger>
+
+            <div className="mt-6 flex gap-4">
+              {books.buy_links?.[0] && (
+                <a
+                  href={books.buy_links[0].url}
+                  target="_blank"
+                  className="inline-block mt-8 rounded-xl bg-black px-6 py-3 text-white transition hover:bg-gray-800"
+                >
+                  Beli Buku
+                </a>
+              )}
+              <ButtonBack title="kembali" />
             </div>
-          
-        </div>
-       
-
+          </div>
+        </Stagger>
       </div>
     </div>
   );

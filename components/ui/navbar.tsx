@@ -63,6 +63,9 @@ const Navbar = () => {
                         <li>
                             <Link href="/books" className="block py-2 px-3 text-heading rounded hover:bg-neutral-tertiary md:hover:bg-transparent md:border-0 md:hover:text-fg-brand md:p-0 md:dark:hover:bg-transparent">Api Books</Link>
                         </li>
+                        <li>
+                            <Link href="/product" className="block py-2 px-3 text-heading rounded hover:bg-neutral-tertiary md:hover:bg-transparent md:border-0 md:hover:text-fg-brand md:p-0 md:dark:hover:bg-transparent">barang kami</Link>
+                        </li>
                     </ul>
                 </div>
             </div>

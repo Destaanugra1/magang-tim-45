@@ -1,4 +1,5 @@
 import ButtonBack from "@/components/ui/Buttonback";
+import { FadeIn } from "@/components/ui/motion";
 import anggota from "@/data/biodata.json";
 import Image from "next/image";
 
@@ -20,7 +21,7 @@ export default async function DetailAnggota({ params }: DetailAnggotaProps) {
 
   return (
     <section className="min-h-screen bg-white px-6 py-16">
-      <div className="max-w-4xl mx-auto bg-white border rounded-3xl shadow p-8">
+      <FadeIn className="max-w-4xl mx-auto bg-white border rounded-3xl shadow p-8">
         <ButtonBack title="Kembali" />
         <div className="relative w-60 h-60 mx-auto">
           <Image
@@ -48,7 +49,7 @@ export default async function DetailAnggota({ params }: DetailAnggotaProps) {
             ID: {user.id}
           </p>
         </div>
-      </div>
+      </FadeIn>
     </section>
   );
 }

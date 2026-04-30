@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,16 +19,31 @@ export default function BookCard({ id, title, coverImage }: BookCardProps) {
   if (typeof coverImage !== "string" || !coverImage.trim()) return null;
 
   return (
-    <Link href={`/books/${id}`}>
+    <motion.div
+      variants={{
+        initial: { opacity: 0, y: 20 },
+        animate: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+        },
+      }}
+      whileHover={{ y: -6 }}
+    >
+    <Link href={`/books/${id}`} className="block overflow-hidden rounded-2xl border bg-white p-3 shadow-sm">
       <Image
         src={coverImage}
         alt={title}
         width={200}
         height={300}
+        className="h-auto w-full rounded-xl object-cover"
         onError={() => setHidden(true)}
       />
-      <div className=" "><h1 className="">{title}</h1></div>
+      <div className="mt-3">
+        <h1 className="line-clamp-2 text-sm font-medium text-slate-900">{title}</h1>
+      </div>
       
     </Link>
+    </motion.div>
   );
 }

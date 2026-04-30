@@ -1,19 +1,21 @@
 import anggota from "@/data/biodata.json";
 import Link from "next/link";
 import TiltedCard from "@/components/TiltedCard";
+import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 
 export default function AnggotaCard() {
   return (
     <section className="bg-white min-h-screen py-16 px-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-gray-900 mb-3">
-          Tim Magang 45
-        </h1>
+        <FadeIn>
+          <h1 className="text-4xl font-bold text-center text-gray-900 mb-3">
+            Tim Magang 45
+          </h1>
+        </FadeIn>
 
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
           {anggota.map((item) => (
-            <div
+            <StaggerItem
               key={item.id}
               className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300"
             >
@@ -53,9 +55,9 @@ export default function AnggotaCard() {
                   Lihat Profil
                 </Link>
               </div>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </div>
     </section>
   );
