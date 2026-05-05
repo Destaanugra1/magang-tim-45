@@ -10,7 +10,7 @@ type DetailAnggotaProps = {
 }
 
 export default async function DetailAnggota({ params }: DetailAnggotaProps) {
-    const resolveprams = await params;
+  const resolveprams = await params;
   const user = anggota.find(
     (item) => item.id === Number(resolveprams.id)
   );
@@ -20,7 +20,7 @@ export default async function DetailAnggota({ params }: DetailAnggotaProps) {
   }
 
   return (
-    <section className="min-h-screen bg-white px-6 py-16">
+    <section className="min-h-screen bg-white  px-6 py-16">
       <FadeIn className="max-w-4xl mx-auto bg-white border rounded-3xl shadow p-8">
         <ButtonBack title="Kembali" />
         <div className="relative w-60 h-60 mx-auto">

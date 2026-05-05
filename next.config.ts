@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'qbtwufqjrsjybekeahdt.supabase.co'
       },
+      // {
+      //   protocol: 'https',
+      //   hostname: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
+      // },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com'
+      },
     ],
   },
 };

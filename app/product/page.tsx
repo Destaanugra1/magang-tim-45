@@ -1,11 +1,15 @@
 import { desc } from "drizzle-orm";
 import { db } from "@/db";
 import { products } from "@/db/schema";
+import { safeAuth } from "@/lib/auth/safe-auth";
 import Image from "next/image";
 import { ProductForm } from "@/components/productForm";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
+import Link from "next/link";
 
 export default async function HomePage() {
+  const session = await safeAuth();
+  const isAdmin = session?.user?.role === "admin";
   const productList = await db
     .select()
     .from(products)
@@ -24,14 +28,37 @@ export default async function HomePage() {
           </h1>
 
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-            Tambahkan produk baru dengan mudah menggunakan form di bawah, dan lihat daftar produk yang sudah tersimpan
-            ORM.
+            Tambahkan produk baru dengan mudah menggunakan form di bawah, dan
+            lihat daftar produk yang sudah tersimpan ORM.
           </p>
         </FadeIn>
 
         <div className="grid gap-8 lg:grid-cols-[420px_1fr] lg:items-start">
           <FadeIn>
-            <ProductForm />
+            {isAdmin ? (
+              <ProductForm />
+            ) : (
+              <div className="space-y-4 rounded-3xl border bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-slate-900">
+                  Area Admin
+                </h2>
+                <p className="text-sm leading-6 text-slate-600">
+                  Form tambah produk hanya bisa dipakai akun admin.
+                </p>
+                {session?.user ? (
+                  <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    Kamu login sebagai <strong>{session.user.role}</strong>.
+                  </p>
+                ) : (
+                  <Link
+                    href="/dashboard/login"
+                    className="inline-flex rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  >
+                    Login untuk lanjut
+                  </Link>
+                )}
+              </div>
+            )}
           </FadeIn>
 
           <div>
