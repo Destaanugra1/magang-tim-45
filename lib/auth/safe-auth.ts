@@ -5,8 +5,16 @@ import { auth } from "@/auth";
 export async function safeAuth() {
   try {
     return await auth();
-  } catch (error) {
-    // Most commonly caused by rotating/missing AUTH_SECRET while an old session cookie still exists.
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      error.digest === "DYNAMIC_SERVER_USAGE"
+    ) {
+      throw error;
+    }
+
     console.error("[safeAuth] Failed to read session. Treating as signed out.", error);
     return null;
   }
