@@ -152,3 +152,53 @@ export function DashboardPageSkeleton() {
     </main>
   );
 }
+
+export function DetailProductSkeleton() {
+  return (
+    
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    
+         {/* ── Back Button Skeleton ── */}
+         <div className="mb-6">
+           <div className="h-9 w-44 animate-pulse rounded-full bg-gray-200" />
+         </div>
+    
+         {/* ── Card Skeleton ── */}
+         <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
+           <div className="flex flex-col md:flex-row">
+    
+             {/* ── Image Skeleton ── */}
+             <div className="w-full md:w-[55%]">
+               <div className="h-56 w-full animate-pulse bg-gray-200 md:h-full md:min-h-[320px]" />
+             </div>
+    
+             {/* ── Content Skeleton ── */}
+             <div className="flex flex-1 flex-col gap-5 p-6 md:p-8">
+    
+               {/* Badge "Detail produk" */}
+               <div className="h-7 w-28 animate-pulse rounded-full bg-gray-200" />
+    
+               {/* Product Name */}
+               <div className="space-y-2">
+                 <div className="h-8 w-3/4 animate-pulse rounded-lg bg-gray-200" />
+                 <div className="h-8 w-1/2 animate-pulse rounded-lg bg-gray-200" />
+               </div>
+    
+               {/* Description */}
+               <div className="space-y-2">
+                 <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                 <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+               </div>
+    
+               {/* Price */}
+               <div className="mt-2 h-10 w-40 animate-pulse rounded-lg bg-gray-200" />
+             </div>
+    
+           </div>
+         </div>
+    
+       </div>
+    
+
+  )
+}

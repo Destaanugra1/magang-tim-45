@@ -5,6 +5,7 @@ import { ProductDashboardTable } from "@/components/dashboard/product-dashboard-
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { safeAuth } from "@/lib/auth/safe-auth";
+import { logout } from "@/actions/logout";
 
 export default async function DashboardPage() {
   const session = await safeAuth();
@@ -48,20 +49,16 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}
-          >
+          <form action={logout}>
             <button
               type="submit"
-              className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="w-full rounded-[22px] bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
             >
               Logout
             </button>
           </form>
         </div>
+        
 
         <div className="mt-8">
           <ProductDashboardTable products={dashboardProducts} />
