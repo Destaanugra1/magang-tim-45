@@ -22,6 +22,8 @@ export default auth((request) => {
   const isLoggedIn = Boolean(request.auth?.user);
   const isAuthRoute = authRoutes.has(pathname);
   const isDashboardRoute = pathname.startsWith("/dashboard");
+  const isProductDetailRoute =
+    pathname.startsWith("/produk/") || pathname.startsWith("/product/");
   const isProductMutation =
     pathname.startsWith("/product") && request.method === "POST";
 
@@ -33,6 +35,10 @@ export default auth((request) => {
   }
 
   if (isDashboardRoute && !isAuthRoute && !isLoggedIn) {
+    return redirectToLogin(request);
+  }
+
+  if (isProductDetailRoute && !isLoggedIn) {
     return redirectToLogin(request);
   }
 
@@ -50,5 +56,11 @@ export default auth((request) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/login", "/register", "/dashboard/:path*", "/product/:path*"],
+  matcher: [
+    "/dashboard/login",
+    "/register",
+    "/dashboard/:path*",
+    "/product/:path*",
+    "/produk/:path*",
+  ],
 };

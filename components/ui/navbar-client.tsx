@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { UserRole } from "@/db/schema";
 import PillNav from "@/components/ui/pill-nav";
+import ProductNavbarSearch from "@/components/ui/product-navbar-search";
 import { logout } from "@/actions/logout";
 
 type NavbarClientProps = {
@@ -21,20 +22,31 @@ type NavItem = {
 
 export default function NavbarClient({ session }: NavbarClientProps) {
   const pathname = usePathname();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsVisible(window.scrollY > 12);
+      const currentScrollY = window.scrollY;
+  
+      if (currentScrollY < 12) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+  
+      setLastScrollY(currentScrollY);
     };
-
-    handleScroll();
+  
     window.addEventListener("scroll", handleScroll, { passive: true });
-
+  
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [lastScrollY]);
 
   const isAdmin = session?.role === "admin";
 
@@ -45,7 +57,7 @@ export default function NavbarClient({ session }: NavbarClientProps) {
     { label: "Team", href: "/team" },
     { label: "Contact", href: "/contact" },
     { label: "Books", href: "/books" },
-    { label: "Produk", href: "/product" },
+    { label: "Produk", href: "/produk" },
 
     ...(isAdmin && session
       ? [
@@ -64,6 +76,8 @@ export default function NavbarClient({ session }: NavbarClientProps) {
     value.length > 1 && value.endsWith("/") ? value.slice(0, -1) : value;
 
   const currentPath = normalizePath(pathname);
+  const isProductListingPage = currentPath === "/produk";
+  const hasDesktopActions = isProductListingPage || Boolean(session);
 
   const activeHref = items.find((item) => {
     const href = normalizePath(item.href);
@@ -75,20 +89,28 @@ export default function NavbarClient({ session }: NavbarClientProps) {
     return currentPath === href || currentPath.startsWith(`${href}/`);
   })?.href;
 
-  const desktopActions = session ? (
+  const desktopActions = hasDesktopActions ? (
     <>
-      <div className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
-        {session.name}
-      </div>
-      <form action={logout}>
-        <button
-          type="submit"
-          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-        >
-          Logout
-        </button>
-      </form>
+      {isProductListingPage ? <ProductNavbarSearch /> : null}
+      {session ? (
+        <>
+          <div className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+            {session.name}
+          </div>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+            >
+              Logout
+            </button>
+          </form>
+        </>
+      ) : null}
     </>
+  ) : null;
+  const mobileActions = isProductListingPage ? (
+    <ProductNavbarSearch mobile />
   ) : null;
 
   const mobileFooter = session ? (
@@ -122,13 +144,14 @@ export default function NavbarClient({ session }: NavbarClientProps) {
       activeHref={activeHref}
       containerClassName={
         isVisible
-          ? "translate-y-0 opacity-100 pointer-events-auto"
-          : "-translate-y-4 opacity-0 pointer-events-none"
-      }
+           ? "translate-y-0 opacity-100 pointer-events-auto"
+           : "-translate-y-8 opacity-0 pointer-events-none"
+       }
       desktopActions={desktopActions}
+      mobileActions={mobileActions}
       mobileFooter={mobileFooter}
       ease="power2.easeOut"
-      baseColor="#0f172a"
+      baseColor="rgba(15, 23, 42, 0.72)"
       pillColor="#f8fafc"
       hoveredPillTextColor="#f8fafc"
       pillTextColor="#0f172a"

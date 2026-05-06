@@ -20,6 +20,7 @@ export interface PillNavProps {
   className?: string;
   containerClassName?: string;
   desktopActions?: ReactNode;
+  mobileActions?: ReactNode;
   mobileFooter?: ReactNode;
   ease?: string;
   baseColor?: string;
@@ -100,6 +101,7 @@ export default function PillNav({
   className = "",
   containerClassName = "",
   desktopActions,
+  mobileActions,
   mobileFooter,
   ease = "power3.easeOut",
   baseColor = "#fff",
@@ -404,10 +406,10 @@ export default function PillNav({
 
   return (
     <div
-      className={`fixed inset-x-0 top-4 z-50 flex justify-center px-4 transition-all duration-300 ${containerClassName}`}
-    >
+      className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 transition-all duration-300 ${containerClassName}`}
+    > 
       <nav
-        className={`flex w-full max-w-6xl items-center justify-between rounded-full bg-[color:var(--base)] px-2 py-2 shadow-[0_18px_60px_rgba(15,23,42,0.18)] lg:w-auto lg:max-w-none lg:bg-transparent lg:px-4 lg:py-0 lg:shadow-none ${className}`}
+        className={`flex w-full max-w-6xl items-center justify-between rounded-full border border-white/15 bg-slate-950/70 px-2 py-2 shadow-[0_18px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl lg:w-auto lg:max-w-none lg:border-0 lg:bg-transparent lg:px-4 lg:py-0 lg:shadow-none lg:backdrop-blur-0 ${className}`}
         aria-label="Primary"
         style={cssVars}
       >
@@ -541,6 +543,10 @@ export default function PillNav({
           <div className="ml-3 hidden items-center gap-2 lg:flex">
             {desktopActions}
           </div>
+        ) : null}
+
+        {mobileActions ? (
+          <div className="mx-2 min-w-0 flex-1 lg:hidden">{mobileActions}</div>
         ) : null}
 
         <button

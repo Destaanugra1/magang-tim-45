@@ -128,7 +128,6 @@ function CreateProductRow() {
             <input
               name="price"
               type="number"
-              min="1"
               step="100"
               required
               placeholder="25000"
