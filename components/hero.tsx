@@ -1,16 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import Home from "@/public/home.jpeg"
-import { WavyBackground } from "./ui/wavy-background";
+import OptimizedWavyBackground from "./optimized-wavy-background";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[200vh] w-full overflow-hidden bg-white px-6 pb-12 pt-24 text-slate-900 md:pb-16 md:pt-28">
-      <div className="absolute inset-0 z-0 h-full w-full">
-        {/*<HeroAurora />*/}
-         <WavyBackground className="h-full w-full" backgroundFill="white"> </WavyBackground>
-      </div>
-
+    <section className="relative w-full overflow-hidden bg-white px-6 pb-12 pt-24 text-slate-900 md:pb-16 md:pt-28">
+          <div className="absolute inset-x-0 top-0 z-0 h-[520px] overflow-hidden">
+            <OptimizedWavyBackground />
+          </div>
       <div className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.75)_45%,rgba(255,255,255,0.92)_100%)]" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-10 lg:gap-12">

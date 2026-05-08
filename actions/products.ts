@@ -1,59 +1,32 @@
 "use server";
+
 import { Buffer } from "node:buffer";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { safeAuth } from "@/lib/auth/safe-auth";
 import { db } from "@/db";
 import { products } from "@/db/schema";
+import { safeAuth } from "@/lib/auth/safe-auth";
+import {
+  createProductSchema,
+  getCreateProductInput,
+  getUpdateProductInput,
+  type ProductActionState,
+  updateProductSchema,
+} from "@/lib/products/validation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-
-export type ProductActionState = {
-  success: boolean;
-  message: string;
-};
+import { createValidationErrorState } from "@/lib/validation/action-state";
 
 const PRODUCT_BUCKET = "vinix";
-const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-const maxSize = 2 * 1024 * 1024;
-type ValidatedProductFields =
-  | ProductActionState
-  | {
-      name: string;
-      description: string;
-      price: string;
-    };
 
-function validateProductFields(formData: FormData): ValidatedProductFields {
-  const name = String(formData.get("name") || "").trim();
-  const description = String(formData.get("description") || "").trim();
-  const price = String(formData.get("price") || "").trim();
+function revalidateProductPages(productId?: string) {
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/product");
+  revalidatePath("/produk");
 
-  if (!name) {
-    return {
-      success: false as const,
-      message: "Nama produk wajib diisi.",
-    };
+  if (productId) {
+    revalidatePath(`/produk/${productId}`);
   }
-
-  if (!price) {
-    return {
-      success: false as const,
-      message: "Harga produk wajib diisi.",
-    };
-  }
-
-  if (Number(price) <= 0) {
-    return {
-      success: false as const,
-      message: "Harga produk harus lebih dari 0.",
-    };
-  }
-
-  return {
-    name,
-    description,
-    price,
-  };
 }
 
 export async function createProduct(
@@ -76,33 +49,18 @@ export async function createProduct(
     };
   }
 
-  const payload = validateProductFields(formData);
-  if ("success" in payload) {
-    return payload;
+  const validatedFields = createProductSchema.safeParse(
+    getCreateProductInput(formData),
+  );
+
+  if (!validatedFields.success) {
+    return createValidationErrorState(
+      "Periksa kembali data produk.",
+      validatedFields.error,
+    );
   }
 
-  const image = formData.get("image");
-  if (!(image instanceof File) || image.size === 0) {
-    return {
-      success: false,
-      message: "Gambar produk wajib diupload.",
-    };
-  }
-
-  if (!allowedTypes.includes(image.type)) {
-    return {
-      success: false,
-      message: "Format gambar harus JPG, PNG, atau WEBP.",
-    };
-  }
-
-  if (image.size > maxSize) {
-    return {
-      success: false,
-      message: "Ukuran gambar maksimal 2MB.",
-    };
-  }
-
+  const { image, ...payload } = validatedFields.data;
   const fileExtension = image.name.split(".").pop();
   const imagePath = `products/${crypto.randomUUID()}.${fileExtension}`;
 
@@ -135,10 +93,7 @@ export async function createProduct(
     imagePath,
   });
 
-  revalidatePath("/");
-  revalidatePath("/dashboard");
-  revalidatePath("/product");
-  revalidatePath("/produk");
+  revalidateProductPages();
 
   return {
     success: true,
@@ -166,19 +121,18 @@ export async function updateProduct(
     };
   }
 
-  const productId = String(formData.get("id") || "").trim();
-  if (!productId) {
-    return {
-      success: false,
-      message: "Produk tidak ditemukan.",
-    };
+  const validatedFields = updateProductSchema.safeParse(
+    getUpdateProductInput(formData),
+  );
+
+  if (!validatedFields.success) {
+    return createValidationErrorState(
+      "Periksa kembali data produk.",
+      validatedFields.error,
+    );
   }
 
-  const payload = validateProductFields(formData);
-  if ("success" in payload) {
-    return payload;
-  }
-
+  const { id: productId, ...payload } = validatedFields.data;
   const existingProduct = await db.query.products.findFirst({
     where: eq(products.id, productId),
   });
@@ -199,11 +153,7 @@ export async function updateProduct(
     })
     .where(eq(products.id, productId));
 
-  revalidatePath("/");
-  revalidatePath("/dashboard");
-  revalidatePath("/product");
-  revalidatePath("/produk");
-  revalidatePath(`/produk/${productId}`);
+  revalidateProductPages(productId);
 
   return {
     success: true,
@@ -211,15 +161,21 @@ export async function updateProduct(
   };
 }
 
-export async function deleteProduct(productId: string) {
+export async function deleteProduct(productId: string): Promise<ProductActionState> {
   const session = await safeAuth();
 
   if (!session?.user || session.user.role !== "admin") {
-    return;
+    return {
+      success: false,
+      message: "Hanya admin yang bisa menghapus produk.",
+    };
   }
 
   if (!productId) {
-    return;
+    return {
+      success: false,
+      message: "Produk tidak ditemukan.",
+    };
   }
 
   const existingProduct = await db.query.products.findFirst({
@@ -227,7 +183,10 @@ export async function deleteProduct(productId: string) {
   });
 
   if (!existingProduct) {
-    return;
+    return {
+      success: false,
+      message: "Produk tidak ditemukan.",
+    };
   }
 
   const { error: storageError } = await supabaseAdmin.storage
@@ -240,9 +199,10 @@ export async function deleteProduct(productId: string) {
 
   await db.delete(products).where(eq(products.id, productId));
 
-  revalidatePath("/");
-  revalidatePath("/dashboard");
-  revalidatePath("/product");
-  revalidatePath("/produk");
-  revalidatePath(`/produk/${productId}`);
+  revalidateProductPages(productId);
+
+  return {
+    success: true,
+    message: "Produk berhasil dihapus.",
+  };
 }

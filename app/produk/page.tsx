@@ -75,6 +75,7 @@ export default async function ProdukPage({
                   className="h-48 w-full object-cover"
                   width={400}
                   height={400}
+                  unoptimized
                 />
 
                 <div className="p-4">

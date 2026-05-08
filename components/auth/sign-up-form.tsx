@@ -1,8 +1,10 @@
 "use client";
 
+import { CircleAlert, CircleCheckBig } from "lucide-react";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { register } from "@/actions/auth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { defaultAuthState } from "@/lib/auth/default-auth-state";
 
 export function SignUpForm() {
@@ -79,13 +81,15 @@ export function SignUpForm() {
       </div>
 
       {state.message ? (
-        <p
-          className={`text-sm ${
-            state.success ? "text-emerald-600" : "text-rose-600"
-          }`}
-        >
-          {state.message}
-        </p>
+        <Alert variant={state.success ? "default" : "destructive"}>
+          {state.success ? (
+            <CircleCheckBig className="h-4 w-4" />
+          ) : (
+            <CircleAlert className="h-4 w-4" />
+          )}
+          <AlertTitle>{state.success ? "Berhasil" : "Pendaftaran gagal"}</AlertTitle>
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
       ) : null}
 
       <button

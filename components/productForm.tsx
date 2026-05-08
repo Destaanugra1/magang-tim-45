@@ -1,19 +1,14 @@
 "use client";
 
+import { CircleAlert, CircleCheckBig } from "lucide-react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import {
-  createProduct,
-  type ProductActionState,
-} from "@/actions/products";
-
-const initialState: ProductActionState = {
-  success: false,
-  message: "",
-};
+import { createProduct } from "@/actions/products";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { defaultProductState } from "@/lib/products/default-product-state";
 
 export function ProductForm() {
-  const [state, formAction] = useActionState(createProduct, initialState);
+  const [state, formAction] = useActionState(createProduct, defaultProductState);
 
   return (
     <form
@@ -31,6 +26,9 @@ export function ProductForm() {
           placeholder="Contoh: Kopi Arabica"
           className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
         />
+        {state.errors?.name ? (
+          <p className="mt-2 text-sm text-rose-600">{state.errors.name[0]}</p>
+        ) : null}
       </div>
 
       <div>
@@ -45,6 +43,9 @@ export function ProductForm() {
           placeholder="Contoh: 25000"
           className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
         />
+        {state.errors?.price ? (
+          <p className="mt-2 text-sm text-rose-600">{state.errors.price[0]}</p>
+        ) : null}
       </div>
 
       <div>
@@ -56,6 +57,11 @@ export function ProductForm() {
           placeholder="Deskripsi singkat produk"
           className="min-h-32 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
         />
+        {state.errors?.description ? (
+          <p className="mt-2 text-sm text-rose-600">
+            {state.errors.description[0]}
+          </p>
+        ) : null}
       </div>
 
       <div>
@@ -69,18 +75,23 @@ export function ProductForm() {
           required
           className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-slate-800"
         />
+        {state.errors?.image ? (
+          <p className="mt-2 text-sm text-rose-600">{state.errors.image[0]}</p>
+        ) : null}
       </div>
 
       <SubmitButton />
 
       {state.message ? (
-        <p
-          className={
-            state.success ? "text-sm text-emerald-600" : "text-sm text-rose-600"
-          }
-        >
-          {state.message}
-        </p>
+        <Alert variant={state.success ? "default" : "destructive"}>
+          {state.success ? (
+            <CircleCheckBig className="h-4 w-4" />
+          ) : (
+            <CircleAlert className="h-4 w-4" />
+          )}
+          <AlertTitle>{state.success ? "Berhasil" : "Produk gagal disimpan"}</AlertTitle>
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
       ) : null}
     </form>
   );

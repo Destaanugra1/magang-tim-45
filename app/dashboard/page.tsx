@@ -1,6 +1,5 @@
 import { desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { signOut } from "@/auth";
 import { ProductDashboardTable } from "@/components/dashboard/product-dashboard-table";
 import { db } from "@/db";
 import { products } from "@/db/schema";

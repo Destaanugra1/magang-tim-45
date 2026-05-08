@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { ActionState } from "@/lib/validation/action-state";
+import { getFormDataString } from "@/lib/validation/form-data";
 
 export const loginSchema = z.object({
   email: z.email("Email tidak valid.").trim(),
@@ -16,12 +18,21 @@ export const registerSchema = loginSchema.extend({
     .trim(),
 });
 
-export type AuthActionState = {
-  success: boolean;
-  message: string;
-  errors?: {
-    name?: string[];
-    email?: string[];
-    password?: string[];
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type AuthActionState = ActionState<RegisterInput>;
+
+export function getLoginInput(formData: FormData): LoginInput {
+  return {
+    email: getFormDataString(formData, "email"),
+    password: getFormDataString(formData, "password"),
   };
-};
+}
+
+export function getRegisterInput(formData: FormData): RegisterInput {
+  return {
+    name: getFormDataString(formData, "name"),
+    email: getFormDataString(formData, "email"),
+    password: getFormDataString(formData, "password"),
+  };
+}

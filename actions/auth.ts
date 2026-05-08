@@ -7,11 +7,14 @@ import { users } from "@/db/schema";
 import { signIn } from "@/auth";
 import { hashPassword } from "@/lib/auth/password";
 import {
+  getLoginInput,
+  getRegisterInput,
   loginSchema,
   registerSchema,
   type AuthActionState,
 } from "@/lib/auth/validation";
 import { defaultAuthState } from "@/lib/auth/default-auth-state";
+import { createValidationErrorState } from "@/lib/validation/action-state";
 
 function resolveCallbackUrl(formData: FormData) {
   const callbackUrl = formData.get("callbackUrl");
@@ -32,17 +35,13 @@ export async function login(
   formData: FormData,
 ): Promise<AuthActionState> {
   const callbackUrl = resolveCallbackUrl(formData);
-  const validatedFields = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+  const validatedFields = loginSchema.safeParse(getLoginInput(formData));
 
   if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "Periksa kembali email dan password.",
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
+    return createValidationErrorState(
+      "Periksa kembali email dan password.",
+      validatedFields.error,
+    );
   }
 
   try {
@@ -73,18 +72,13 @@ export async function register(
   formData: FormData,
 ): Promise<AuthActionState> {
   const callbackUrl = resolveCallbackUrl(formData);
-  const validatedFields = registerSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+  const validatedFields = registerSchema.safeParse(getRegisterInput(formData));
 
   if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "Periksa kembali data pendaftaran.",
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
+    return createValidationErrorState(
+      "Periksa kembali data pendaftaran.",
+      validatedFields.error,
+    );
   }
 
   const email = validatedFields.data.email.toLowerCase();
