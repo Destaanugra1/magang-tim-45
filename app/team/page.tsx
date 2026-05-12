@@ -1,4 +1,4 @@
-import anggota from "@/data/biodata.json";
+import anggota from "@/db/data/biodata.json";
 import Link from "next/link";
 import TiltedCard from "@/components/TiltedCard";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";

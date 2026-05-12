@@ -1,7 +1,19 @@
 "use client";
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { createNoise3D } from "simplex-noise";
+
+type WavyBackgroundProps = React.HTMLAttributes<HTMLDivElement> & {
+  children?: React.ReactNode;
+  className?: string;
+  containerClassName?: string;
+  colors?: string[];
+  waveWidth?: number;
+  backgroundFill?: string;
+  blur?: number;
+  speed?: "slow" | "fast";
+  waveOpacity?: number;
+};
 
 export const WavyBackground = ({
   children,
@@ -14,26 +26,15 @@ export const WavyBackground = ({
   speed = "fast",
   waveOpacity = 0.5,
   ...props
-}: {
-  children?: any;
-  className?: string;
-  containerClassName?: string;
-  colors?: string[];
-  waveWidth?: number;
-  backgroundFill?: string;
-  blur?: number;
-  speed?: "slow" | "fast";
-  waveOpacity?: number;
-  [key: string]: any;
-}) => {
+}: WavyBackgroundProps) => {
   const noise = createNoise3D();
   let w: number,
     h: number,
     nt: number,
     i: number,
     x: number,
-    ctx: any,
-    canvas: any;
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const getSpeed = () => {
     switch (speed) {
@@ -47,8 +48,18 @@ export const WavyBackground = ({
   };
 
   const init = () => {
+    if (!canvasRef.current) {
+      return;
+    }
+
+    const nextContext = canvasRef.current.getContext("2d");
+
+    if (!nextContext) {
+      return;
+    }
+
     canvas = canvasRef.current;
-    ctx = canvas.getContext("2d");
+    ctx = nextContext;
   
     const parent = canvas.parentElement;
   
@@ -81,7 +92,7 @@ export const WavyBackground = ({
       ctx.lineWidth = waveWidth || 50;
       ctx.strokeStyle = waveColors[i % waveColors.length];
       for (x = 0; x < w; x += 5) {
-        var y = noise(x / 800, 0.3 * i, nt) * 100;
+        const y = noise(x / 800, 0.3 * i, nt) * 100;
         ctx.lineTo(x, y + h * 0.5); // adjust for height, currently at 50% of the container
       }
       ctx.stroke();
@@ -105,15 +116,10 @@ export const WavyBackground = ({
     };
   }, []);
 
-  const [isSafari, setIsSafari] = useState(false);
-  useEffect(() => {
-    // I'm sorry but i have got to support it on safari.
-    setIsSafari(
-      typeof window !== "undefined" &&
-        navigator.userAgent.includes("Safari") &&
-        !navigator.userAgent.includes("Chrome")
-    );
-  }, []);
+  const isSafari =
+    typeof navigator !== "undefined" &&
+    navigator.userAgent.includes("Safari") &&
+    !navigator.userAgent.includes("Chrome");
 
   return (
     <div

@@ -1,5 +1,6 @@
 import "next-auth";
 import "next-auth/jwt";
+import type { DefaultSession } from "next-auth";
 import type { UserRole } from "@/db/schema";
 
 declare module "next-auth" {

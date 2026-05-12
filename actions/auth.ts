@@ -106,7 +106,7 @@ export async function register(
     name: validatedFields.data.name,
     email,
     passwordHash,
-    role: existingAdmin ? "user" : "admin",
+    role: existingAdmin ? validatedFields.data.role : "admin",
   });
 
   try {

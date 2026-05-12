@@ -48,7 +48,7 @@ export default function NavbarClient({ session }: NavbarClientProps) {
     };
   }, [lastScrollY]);
 
-  const isAdmin = session?.role === "admin";
+  const canOpenDashboard = session?.role === "admin" || session?.role === "pengusaha";
 
   const items: NavItem[] = [
     { label: "Home", href: "/" },
@@ -59,7 +59,7 @@ export default function NavbarClient({ session }: NavbarClientProps) {
     { label: "Books", href: "/books" },
     { label: "Produk", href: "/produk" },
 
-    ...(isAdmin && session
+    ...(canOpenDashboard && session
       ? [
           {
             label: "Dashboard",

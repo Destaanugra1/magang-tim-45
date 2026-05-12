@@ -40,6 +40,27 @@ export function SignUpForm() {
 
       <div>
         <label
+          htmlFor="role"
+          className="mb-2 block text-sm font-medium text-slate-700"
+        >
+          Daftar sebagai
+        </label>
+        <select
+          id="role"
+          name="role"
+          defaultValue="customer"
+          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
+        >
+          <option value="customer">Customer</option>
+          <option value="pengusaha">Pengusaha / pemilik UMKM</option>
+        </select>
+        {state.errors?.role ? (
+          <p className="mt-2 text-sm text-rose-600">{state.errors.role[0]}</p>
+        ) : null}
+      </div>
+
+      <div>
+        <label
           htmlFor="email"
           className="mb-2 block text-sm font-medium text-slate-700"
         >

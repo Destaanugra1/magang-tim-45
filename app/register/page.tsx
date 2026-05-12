@@ -20,8 +20,8 @@ export default async function RegisterPage() {
           Buat akun baru
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          Akun pertama otomatis menjadi <strong>admin</strong>. Setelah itu,
-          akun baru akan menjadi <strong>user</strong>.
+          Pilih customer untuk belanja, atau pengusaha untuk membuat toko UMKM.
+          Akun pertama tetap otomatis menjadi <strong>admin</strong>.
         </p>
 
         <div className="mt-8">

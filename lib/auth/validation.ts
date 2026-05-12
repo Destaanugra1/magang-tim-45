@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { UserRole } from "@/db/schema";
 import type { ActionState } from "@/lib/validation/action-state";
 import { getFormDataString } from "@/lib/validation/form-data";
 
@@ -16,11 +17,12 @@ export const registerSchema = loginSchema.extend({
     .min(3, "Nama minimal 3 karakter.")
     .max(50, "Nama maksimal 50 karakter.")
     .trim(),
+  role: z.enum(["customer", "pengusaha"]),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
-export type AuthActionState = ActionState<RegisterInput>;
+export type AuthActionState = ActionState<RegisterInput & { role: UserRole }>;
 
 export function getLoginInput(formData: FormData): LoginInput {
   return {
@@ -34,5 +36,6 @@ export function getRegisterInput(formData: FormData): RegisterInput {
     name: getFormDataString(formData, "name"),
     email: getFormDataString(formData, "email"),
     password: getFormDataString(formData, "password"),
+    role: getFormDataString(formData, "role") as RegisterInput["role"],
   };
 }

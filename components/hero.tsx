@@ -6,7 +6,7 @@ import OptimizedWavyBackground from "./optimized-wavy-background";
 export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden bg-white px-6 pb-12 pt-24 text-slate-900 md:pb-16 md:pt-28">
-          <div className="absolute inset-x-0 top-0 z-0 h-[520px] overflow-hidden">
+          <div className="absolute inset-x-0 top-0 z-0 h-130 overflow-hidden">
             <OptimizedWavyBackground />
           </div>
       <div className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.75)_45%,rgba(255,255,255,0.92)_100%)]" />

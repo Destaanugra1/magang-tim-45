@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ActionState } from "@/lib/validation/action-state";
-import { getFormDataFile, getFormDataString } from "@/lib/validation/form-data";
+import { getFormDataFiles, getFormDataString } from "@/lib/validation/form-data";
 
 export const productImageTypes = [
   "image/jpeg",
@@ -11,8 +11,10 @@ export const productImageTypes = [
 export const productImageMaxSize = 2 * 1024 * 1024;
 
 const productDetailsSchema = z.object({
+  storeId: z.string().trim().min(1, "Pilih toko terlebih dahulu."),
   name: z.string().trim().min(1, "Nama produk wajib diisi."),
   description: z.string().trim(),
+  category: z.string().trim().min(2, "Kategori wajib diisi."),
   price: z
     .string()
     .trim()
@@ -46,24 +48,40 @@ const productImageSchema = z
   });
 
 export const createProductSchema = productDetailsSchema.extend({
-  image: productImageSchema,
+  images: z
+    .array(productImageSchema)
+    .min(1, "Minimal upload 1 gambar produk.")
+    .max(5, "Maksimal 5 gambar produk."),
 });
 
-export const updateProductSchema = productDetailsSchema.extend({
+export const updateProductSchema = productDetailsSchema.omit({ storeId: true }).extend({
   id: z.string().trim().min(1, "Produk tidak ditemukan."),
+});
+
+export const productModerationSchema = z.object({
+  id: z.string().trim().min(1, "Produk tidak ditemukan."),
+  status: z.enum(["pending", "approved", "rejected", "removed"]),
+  adminNote: z.string().trim(),
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
-export type ProductFormFields = CreateProductInput & Pick<UpdateProductInput, "id">;
+export type ProductModerationInput = z.infer<typeof productModerationSchema>;
+export type ProductFormFields = CreateProductInput &
+  UpdateProductInput &
+  ProductModerationInput & {
+    image: File;
+  };
 export type ProductActionState = ActionState<ProductFormFields>;
 
 export function getCreateProductInput(formData: FormData) {
   return {
     name: getFormDataString(formData, "name"),
     description: getFormDataString(formData, "description"),
+    category: getFormDataString(formData, "category"),
     price: getFormDataString(formData, "price"),
-    image: getFormDataFile(formData, "image"),
+    storeId: getFormDataString(formData, "storeId"),
+    images: getFormDataFiles(formData, "images"),
   };
 }
 
@@ -72,6 +90,17 @@ export function getUpdateProductInput(formData: FormData): UpdateProductInput {
     id: getFormDataString(formData, "id"),
     name: getFormDataString(formData, "name"),
     description: getFormDataString(formData, "description"),
+    category: getFormDataString(formData, "category"),
     price: getFormDataString(formData, "price"),
+  };
+}
+
+export function getProductModerationInput(
+  formData: FormData,
+): ProductModerationInput {
+  return {
+    id: getFormDataString(formData, "id"),
+    status: getFormDataString(formData, "status") as ProductModerationInput["status"],
+    adminNote: getFormDataString(formData, "adminNote"),
   };
 }

@@ -1,12 +1,12 @@
 import ButtonBack from "@/components/ui/Buttonback";
 import { FadeIn } from "@/components/ui/motion";
-import anggota from "@/data/biodata.json";
+import anggota from "@/db/data/biodata.json";
 import Image from "next/image";
 
 type DetailAnggotaProps = {
-    params: {
+    params: Promise<{
         id: string;
-    }
+    }>
 }
 
 export default async function DetailAnggota({ params }: DetailAnggotaProps) {
