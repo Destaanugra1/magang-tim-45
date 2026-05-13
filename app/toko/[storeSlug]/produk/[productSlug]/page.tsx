@@ -1,10 +1,11 @@
 import { and, eq } from "drizzle-orm";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, MapPin, Store, Tag, MessageCircle } from "lucide-react";
 import { db } from "@/db";
 import { productImages, products, stores } from "@/db/schema";
 import { createWhatsAppUrl } from "@/lib/whatsapp";
+import { ProductGallery } from "@/components/ui/product-gallery";
 
 export default async function ProductSlugDetailPage({
   params,
@@ -12,6 +13,7 @@ export default async function ProductSlugDetailPage({
   params: Promise<{ storeSlug: string; productSlug: string }>;
 }) {
   const { storeSlug, productSlug } = await params;
+
   const [product] = await db
     .select({
       id: products.id,
@@ -23,8 +25,10 @@ export default async function ProductSlugDetailPage({
       storeName: stores.name,
       storeSlug: stores.slug,
       storeAddress: stores.address,
+      province: stores.province,
       regency: stores.regency,
       district: stores.district,
+      village: stores.village,
       whatsappNumber: stores.whatsappNumber,
     })
     .from(products)
@@ -38,87 +42,114 @@ export default async function ProductSlugDetailPage({
       ),
     );
 
-  if (!product) {
-    notFound();
-  }
+  if (!product) notFound();
 
   const images = await db
-    .select()
+    .select({ id: productImages.id, imageUrl: productImages.imageUrl })
     .from(productImages)
     .where(eq(productImages.productId, product.id))
     .orderBy(productImages.sortOrder);
+
   const primaryImage = images[0]?.imageUrl ?? "";
   const productPath = `/toko/${product.storeSlug}/produk/${product.slug}`;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const productUrl = `${appUrl}${productPath}`;
+  const locationParts = [product.village, product.district, product.regency, product.province].filter(Boolean);
+  const fullAddress = [product.storeAddress, ...locationParts].filter(Boolean).join(", ");
+
   const whatsappUrl = createWhatsAppUrl(
     product.whatsappNumber,
     [
-      "Halo, saya mau pesan produk ini:",
-      `Produk: ${product.name}`,
-      `Harga: Rp ${Number(product.price).toLocaleString("id-ID")}`,
-      `Toko: ${product.storeName}`,
-      `Alamat: ${product.storeAddress}, ${product.district}, ${product.regency}`,
-      `Link produk: ${productUrl}`,
-      primaryImage ? `Foto utama: ${primaryImage}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n"),
+      "Halo, saya tertarik dengan produk ini:",
+      `📦 ${product.name}`,
+      `💰 Rp ${Number(product.price).toLocaleString("id-ID")}`,
+      `🏪 ${product.storeName}`,
+      `📍 ${fullAddress}`,
+      `🔗 ${productUrl}`,
+    ].join("\n"),
   );
 
   return (
-    <main className="min-h-screen bg-white px-6 pb-24 pt-28 text-slate-900">
-      <section className="mx-auto max-w-6xl">
+    <main className="min-h-screen bg-[#f8f8f6] pt-24 pb-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+
+        {/* Back */}
         <Link
           href={`/toko/${product.storeSlug}`}
-          className="mb-8 inline-flex rounded-full border px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+          className="mb-10 inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-900"
         >
-          Kembali ke toko
+          <ArrowLeft className="h-4 w-4" /> Kembali ke toko
         </Link>
 
-        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-          <div>
-            <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-slate-100">
-              {primaryImage ? (
-                <Image src={primaryImage} alt={product.name} fill priority unoptimized className="object-cover" sizes="(min-width: 1024px) 55vw, 100vw" />
-              ) : null}
-            </div>
-            {images.length > 1 ? (
-              <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5">
-                {images.map((image) => (
-                  <div key={image.id} className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
-                    <Image src={image.imageUrl} alt={product.name} fill unoptimized className="object-cover" sizes="120px" />
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
+        <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:gap-14 items-start">
 
-          <div className="flex flex-col justify-center rounded-[2rem] border bg-slate-50 p-8">
-            <p className="inline-flex w-fit rounded-full border bg-white px-4 py-2 text-sm text-slate-600">
-              {product.category}
-            </p>
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight">{product.name}</h1>
-            <p className="mt-3 text-sm text-slate-500">
-              {product.storeName} | {product.district}, {product.regency}
-            </p>
-            <p className="mt-6 text-lg leading-8 text-slate-600">
-              {product.description || "Tidak ada deskripsi."}
-            </p>
-            <p className="mt-8 text-3xl font-semibold">
+          {/* ── Gallery ── */}
+          <ProductGallery images={images} productName={product.name} />
+
+          {/* ── Info ── */}
+          <div className="flex flex-col">
+
+            {/* Category + Store */}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1">
+                <Tag className="h-3 w-3" /> {product.category}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1">
+                <Store className="h-3 w-3" /> {product.storeName}
+              </span>
+            </div>
+
+            {/* Name */}
+            <h1 className="mt-5 text-3xl font-semibold leading-tight tracking-tight text-slate-900 lg:text-4xl">
+              {product.name}
+            </h1>
+
+            {/* Location */}
+            {locationParts.length > 0 && (
+              <p className="mt-3 flex items-start gap-1.5 text-sm text-slate-400">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                {locationParts.join(", ")}
+              </p>
+            )}
+
+            {/* Divider */}
+            <div className="my-6 h-px bg-slate-200" />
+
+            {/* Price */}
+            <p className="text-4xl font-bold tracking-tight text-slate-900">
               Rp {Number(product.price).toLocaleString("id-ID")}
             </p>
+
+            {/* Description */}
+            <p className="mt-6 text-[15px] leading-relaxed text-slate-600">
+              {product.description || "Tidak ada deskripsi produk."}
+            </p>
+
+            {/* Divider */}
+            <div className="my-8 h-px bg-slate-200" />
+
+            {/* CTA */}
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-8 inline-flex justify-center rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              className="inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
             >
-              Beli via WhatsApp
+              <MessageCircle className="h-5 w-5" />
+              Hubungi via WhatsApp
             </a>
+
+            {/* Store detail strip */}
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-5 py-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-slate-400">Toko</p>
+              <p className="mt-1 font-medium text-slate-800">{product.storeName}</p>
+              {fullAddress && (
+                <p className="mt-0.5 text-sm text-slate-500">{fullAddress}</p>
+              )}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

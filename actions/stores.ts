@@ -86,7 +86,7 @@ export async function createStore(
 }
 
 export async function createStoreFromForm(formData: FormData) {
-  await createStore({ success: false, message: "" }, formData);
+  return createStore({ success: false, message: "" }, formData);
 }
 
 export async function updateStoreStatus(
@@ -158,4 +158,66 @@ export async function createMentoringNote(formData: FormData) {
   });
 
   revalidatePath("/dashboard");
+}
+
+export async function updateStore(
+  _prevState: StoreActionState,
+  formData: FormData,
+): Promise<StoreActionState> {
+  const session = await safeAuth();
+
+  if (!session?.user) {
+    return { success: false, message: "Silakan login terlebih dahulu." };
+  }
+
+  const storeId = getFormDataString(formData, "id");
+  const validatedFields = storeSchema.safeParse(getStoreInput(formData));
+
+  if (!validatedFields.success) {
+    return createValidationErrorState(
+      "Periksa kembali data toko.",
+      validatedFields.error,
+    );
+  }
+
+  // Verify ownership
+  const existingStore = await db.query.stores.findFirst({
+    where: eq(stores.id, storeId),
+  });
+
+  if (!existingStore) {
+    return { success: false, message: "Toko tidak ditemukan." };
+  }
+
+  if (existingStore.ownerId !== session.user.id && session.user.role !== "admin") {
+    return { success: false, message: "Anda tidak memiliki akses untuk mengubah toko ini." };
+  }
+
+  await db
+    .update(stores)
+    .set({
+      name: validatedFields.data.name,
+      description: validatedFields.data.description,
+      address: validatedFields.data.address,
+      province: validatedFields.data.province,
+      regency: validatedFields.data.regency,
+      district: validatedFields.data.district,
+      village: validatedFields.data.village,
+      whatsappNumber: validatedFields.data.whatsappNumber,
+    })
+    .where(eq(stores.id, storeId));
+
+  revalidatePath("/dashboard");
+  revalidatePath("/produk");
+  revalidatePath("/toko");
+  revalidatePath(`/toko/${existingStore.slug}`);
+
+  return {
+    success: true,
+    message: "Toko berhasil diperbarui.",
+  };
+}
+
+export async function updateStoreFromForm(formData: FormData) {
+  return updateStore({ success: false, message: "" }, formData);
 }

@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: userRoleEnum("role").default("customer").notNull(),
+  photoUrl: text("photo_url"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).defaultNow().notNull(),
@@ -49,8 +50,10 @@ export const stores = pgTable("stores", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   address: text("address").notNull(),
+  province: text("province").default("Lampung").notNull(),
   regency: text("regency").notNull(),
   district: text("district").notNull(),
+  village: text("village").default("").notNull(),
   whatsappNumber: text("whatsapp_number").notNull(),
   status: storeStatusEnum("status").default("pending").notNull(),
   adminNote: text("admin_note"),
@@ -97,6 +100,23 @@ export const productImages = pgTable("product_images", {
   }).defaultNow().notNull(),
 });
 
+export const categories = pgTable(
+  "categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    }).defaultNow().notNull(),
+  },
+  (table) => [unique("categories_owner_name_unique").on(table.ownerId, table.name)],
+);
+
 export const mentoringNotes = pgTable("mentoring_notes", {
   id: uuid("id").defaultRandom().primaryKey(),
   adminId: uuid("admin_id")
@@ -123,3 +143,5 @@ export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type ProductImage = typeof productImages.$inferSelect;
 export type NewProductImage = typeof productImages.$inferInsert;
+export type Category = typeof categories.$inferSelect;
+export type NewCategory = typeof categories.$inferInsert;

@@ -129,7 +129,7 @@ export async function createProduct(
       ...payload,
       storeId: store.id,
       slug: await createUniqueProductSlug(store.id, payload.name),
-      status: "pending",
+      status: "approved",
     })
     .returning({ id: products.id });
 
@@ -154,7 +154,7 @@ export async function createProduct(
 
   return {
     success: true,
-    message: "Produk berhasil ditambahkan dan menunggu approval admin.",
+    message: "Produk berhasil ditambahkan dan langsung aktif.",
   };
 }
 
@@ -335,4 +335,8 @@ export async function updateProductStatus(
 
 export async function updateProductStatusFromForm(formData: FormData) {
   await updateProductStatus({ success: false, message: "" }, formData);
+}
+
+export async function updateProductFromForm(formData: FormData) {
+  return updateProduct({ success: false, message: "" }, formData);
 }

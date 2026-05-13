@@ -1,11 +1,14 @@
 "use server";
 
+import { Buffer } from "node:buffer";
 import { AuthError } from "next-auth";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { signIn } from "@/auth";
 import { hashPassword } from "@/lib/auth/password";
+import { safeAuth } from "@/lib/auth/safe-auth";
 import {
   getLoginInput,
   getRegisterInput,
@@ -15,6 +18,25 @@ import {
 } from "@/lib/auth/validation";
 import { defaultAuthState } from "@/lib/auth/default-auth-state";
 import { createValidationErrorState } from "@/lib/validation/action-state";
+import { getFormDataFile } from "@/lib/validation/form-data";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+const USER_BUCKET = "vinix";
+
+async function uploadUserPhoto(file: File, userId: string): Promise<string> {
+  const fileExt = file.name.split(".").pop() ?? "jpg";
+  const imagePath = `users/${userId}/profile.${fileExt}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await supabaseAdmin.storage
+    .from(USER_BUCKET)
+    .upload(imagePath, buffer, { contentType: file.type, upsert: true });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabaseAdmin.storage.from(USER_BUCKET).getPublicUrl(imagePath);
+  return data.publicUrl;
+}
 
 function resolveCallbackUrl(formData: FormData) {
   const callbackUrl = formData.get("callbackUrl");
@@ -81,6 +103,16 @@ export async function register(
     );
   }
 
+  const photo = getFormDataFile(formData, "photo");
+  const role = validatedFields.data.role;
+
+  if (role === "pengusaha" && (!photo || photo.size === 0)) {
+    return {
+      success: false,
+      message: "Foto profil toko wajib diupload untuk akun pengusaha.",
+    };
+  }
+
   const email = validatedFields.data.email.toLowerCase();
   const existingUser = await db.query.users.findFirst({
     where: eq(users.email, email),
@@ -101,12 +133,24 @@ export async function register(
   });
 
   const passwordHash = await hashPassword(validatedFields.data.password);
+  const userId = crypto.randomUUID();
+
+  let photoUrl: string | null = null;
+  if (photo && photo.size > 0) {
+    try {
+      photoUrl = await uploadUserPhoto(photo, userId);
+    } catch {
+      return { success: false, message: "Gagal upload foto profil. Coba lagi." };
+    }
+  }
 
   await db.insert(users).values({
+    id: userId,
     name: validatedFields.data.name,
     email,
     passwordHash,
     role: existingAdmin ? validatedFields.data.role : "admin",
+    photoUrl,
   });
 
   try {
@@ -130,4 +174,30 @@ export async function register(
     success: true,
     message: "Akun berhasil dibuat.",
   };
+}
+
+export async function updateUserPhoto(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const session = await safeAuth();
+
+  if (!session?.user) {
+    return { success: false, message: "Silakan login terlebih dahulu." };
+  }
+
+  const photo = getFormDataFile(formData, "photo");
+  if (!photo || photo.size === 0) {
+    return { success: false, message: "Pilih foto terlebih dahulu." };
+  }
+
+  try {
+    const photoUrl = await uploadUserPhoto(photo, session.user.id);
+    await db.update(users).set({ photoUrl }).where(eq(users.id, session.user.id));
+    revalidatePath("/dashboard");
+    revalidatePath("/produk");
+    return { success: true, message: "Foto profil berhasil diperbarui." };
+  } catch {
+    return { success: false, message: "Gagal upload foto. Coba lagi." };
+  }
 }

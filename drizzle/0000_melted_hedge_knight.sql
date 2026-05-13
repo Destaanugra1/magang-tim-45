@@ -41,8 +41,10 @@ CREATE TABLE "stores" (
 	"name" text NOT NULL,
 	"description" text NOT NULL,
 	"address" text NOT NULL,
+	"province" text DEFAULT 'Lampung' NOT NULL,
 	"regency" text NOT NULL,
 	"district" text NOT NULL,
+	"village" text DEFAULT '' NOT NULL,
 	"whatsapp_number" text NOT NULL,
 	"status" "store_status" DEFAULT 'pending' NOT NULL,
 	"admin_note" text,
@@ -56,6 +58,7 @@ CREATE TABLE "users" (
 	"email" text NOT NULL,
 	"password_hash" text NOT NULL,
 	"role" "user_role" DEFAULT 'customer' NOT NULL,
+	"photo_url" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );

@@ -42,13 +42,19 @@ export default async function StoreDetailPage({
       <section className="mx-auto max-w-7xl">
         <div className="rounded-[2rem] border bg-slate-50 p-8 shadow-sm">
           <p className="inline-flex rounded-full border bg-white px-4 py-2 text-sm text-slate-600">
-            {store.district}, {store.regency}
+            {[store.village, store.district, store.regency, store.province]
+              .filter(Boolean)
+              .join(", ")}
           </p>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight">{store.name}</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
             {store.description}
           </p>
-          <p className="mt-4 text-sm text-slate-500">Alamat: {store.address}</p>
+          <p className="mt-4 text-sm text-slate-500">
+            Alamat: {[store.address, store.village, store.district, store.regency, store.province]
+              .filter(Boolean)
+              .join(", ")}
+          </p>
         </div>
 
         <h2 className="mt-10 text-2xl font-semibold">Produk toko</h2>
@@ -66,7 +72,7 @@ export default async function StoreDetailPage({
               >
                 <div className="relative h-52 bg-slate-100">
                   {product.imageUrl ? (
-                    <Image src={product.imageUrl} alt={product.name} fill unoptimized className="object-cover" sizes="33vw" />
+                    <Image src={product.imageUrl} alt={product.name} fill quality={90} className="object-cover" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" />
                   ) : null}
                 </div>
                 <div className="p-4">

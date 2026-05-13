@@ -6,8 +6,10 @@ export const storeSchema = z.object({
   name: z.string().trim().min(3, "Nama toko minimal 3 karakter."),
   description: z.string().trim().min(10, "Deskripsi toko minimal 10 karakter."),
   address: z.string().trim().min(8, "Alamat toko wajib lengkap."),
+  province: z.string().trim().min(3, "Provinsi wajib dipilih."),
   regency: z.string().trim().min(3, "Kabupaten/kota wajib diisi."),
   district: z.string().trim().min(3, "Kecamatan wajib diisi."),
+  village: z.string().trim(),
   whatsappNumber: z
     .string()
     .trim()
@@ -34,8 +36,10 @@ export function getStoreInput(formData: FormData): StoreInput {
     name: getFormDataString(formData, "name"),
     description: getFormDataString(formData, "description"),
     address: getFormDataString(formData, "address"),
+    province: getFormDataString(formData, "province"),
     regency: getFormDataString(formData, "regency"),
     district: getFormDataString(formData, "district"),
+    village: getFormDataString(formData, "village"),
     whatsappNumber: getFormDataString(formData, "whatsappNumber"),
   };
 }

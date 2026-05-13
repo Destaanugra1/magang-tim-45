@@ -2,41 +2,72 @@ import { and, desc, eq } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { logout } from "@/actions/logout";
+import {
+  Store,
+  Package,
+  UserCircle,
+  ArrowRight,
+  Trash2,
+  Plus,
+  ShieldCheck,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Ban,
+  Eye,
+  Edit3,
+} from "lucide-react";
 import {
   createMentoringNote,
-  createStoreFromForm,
   updateStoreStatusFromForm,
 } from "@/actions/stores";
 import {
-  createProductFromForm,
   deleteProductFromForm,
   updateProductStatusFromForm,
 } from "@/actions/products";
 import { db } from "@/db";
-import { productImages, products, stores, users } from "@/db/schema";
+import { categories, productImages, products, stores, users } from "@/db/schema";
+import { StoreSection } from "@/components/dashboard/store-section";
+import { PhotoUploadForm } from "@/components/dashboard/photo-upload-form";
 import { safeAuth } from "@/lib/auth/safe-auth";
-import { MAX_STORES_PER_OWNER } from "@/lib/stores/constants";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SidebarDashboardClient } from "@/components/dashboard/sidebar-dashboard-client";
+import { EditStoreButton, EditProductButton } from "@/components/dashboard/edit-buttons";
+import { ProductSection } from "@/components/dashboard/product-section";
+import { CategorySection } from "@/components/dashboard/category-section";
 
-const statusClassName: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  active: "bg-emerald-100 text-emerald-800",
-  approved: "bg-emerald-100 text-emerald-800",
-  suspended: "bg-orange-100 text-orange-800",
-  closed: "bg-slate-200 text-slate-700",
-  rejected: "bg-rose-100 text-rose-800",
-  removed: "bg-rose-100 text-rose-800",
+const statusConfig: Record<string, { bg: string; text: string; border: string; icon: React.ReactNode }> = {
+  pending: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: <Clock className="h-3.5 w-3.5" /> },
+  active: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+  approved: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: <ShieldCheck className="h-3.5 w-3.5" /> },
+  suspended: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: <AlertCircle className="h-3.5 w-3.5" /> },
+  closed: { bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200", icon: <Ban className="h-3.5 w-3.5" /> },
+  rejected: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", icon: <XCircle className="h-3.5 w-3.5" /> },
+  removed: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const session = await safeAuth();
 
   if (!session?.user) {
     redirect("/dashboard/login");
   }
 
+  const params = await searchParams;
+  const activeTab = params.tab ?? "overview";
+
   if (session.user.role === "admin") {
-    return <AdminDashboard userName={session.user.name ?? "Admin"} />;
+    return (
+      <AdminDashboard
+        userName={session.user.name ?? "Admin"}
+        activeTab={activeTab}
+      />
+    );
   }
 
   if (session.user.role === "pengusaha") {
@@ -44,35 +75,33 @@ export default async function DashboardPage() {
       <EntrepreneurDashboard
         userId={session.user.id}
         userName={session.user.name ?? "Pengusaha"}
+        activeTab={activeTab}
       />
     );
   }
 
   return (
-    <DashboardShell title="Dashboard Customer" userName={session.user.name ?? "Customer"}>
-      <section className="rounded-3xl border bg-white p-6 shadow-sm">
-        <p className="text-slate-600">
-          Akun customer tidak perlu dashboard. Silakan cari produk UMKM dan pesan
-          langsung lewat WhatsApp.
-        </p>
-        <Link
-          href="/produk"
-          className="mt-5 inline-flex rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
-        >
-          Cari Produk
-        </Link>
-      </section>
-    </DashboardShell>
+    <CustomerDashboard
+      userName={session.user.name ?? "Customer"}
+      activeTab={activeTab}
+    />
   );
 }
 
 async function EntrepreneurDashboard({
   userId,
   userName,
+  activeTab,
 }: {
   userId: string;
   userName: string;
+  activeTab: string;
 }) {
+  const [ownerUser] = await db
+    .select({ photoUrl: users.photoUrl })
+    .from(users)
+    .where(eq(users.id, userId));
+
   const ownerStores = await db
     .select()
     .from(stores)
@@ -104,75 +133,52 @@ async function EntrepreneurDashboard({
     .orderBy(desc(products.createdAt));
 
   const activeStores = ownerStores.filter((store) => store.status === "active");
+  const totalProducts = ownerProducts.length;
+  const approvedProducts = ownerProducts.filter((p) => p.status === "approved").length;
+
+  const allCategories = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.ownerId, userId))
+    .orderBy(categories.name);
 
   return (
-    <DashboardShell title="Dashboard Pengusaha" userName={userName}>
-      <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-3xl border bg-white p-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Toko Saya</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                {ownerStores.length}/{MAX_STORES_PER_OWNER} toko terpakai.
-              </p>
-            </div>
-            <StatusBadge value={ownerStores.length >= MAX_STORES_PER_OWNER ? "penuh" : "tersedia"} />
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {ownerStores.length === 0 ? (
-              <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">
-                Belum ada toko. Buat toko dulu, lalu tunggu approval admin.
-              </p>
-            ) : (
-              ownerStores.map((store) => (
-                <div key={store.id} className="rounded-2xl border p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/toko/${store.slug}`} className="font-semibold">
-                      {store.name}
-                    </Link>
-                    <StatusBadge value={store.status} />
-                  </div>
-                  <p className="mt-2 text-sm text-slate-500">
-                    {store.district}, {store.regency}
-                  </p>
-                  {store.adminNote ? (
-                    <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-                      Catatan admin: {store.adminNote}
-                    </p>
-                  ) : null}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {ownerStores.length < MAX_STORES_PER_OWNER ? <CreateStoreCard /> : null}
-      </section>
-
-      <section className="rounded-3xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold">Tambah Produk</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Produk baru masuk status pending dan tampil setelah disetujui admin.
-        </p>
-        {activeStores.length === 0 ? (
-          <p className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
-            Kamu perlu minimal satu toko active sebelum menambah produk.
-          </p>
-        ) : (
-          <CreateProductForm stores={activeStores} />
-        )}
-      </section>
-
-      <section className="rounded-3xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold">Produk Saya</h2>
-        <ProductList products={ownerProducts} canDelete />
-      </section>
-    </DashboardShell>
+    <SidebarDashboardClient
+      userName={userName}
+      userRole="pengusaha"
+      activeTab={activeTab}
+      overviewContent={
+        <>
+          {!ownerUser?.photoUrl && <PhotoUploadForm />}
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard icon={<Store className="h-5 w-5" />} label="Total Toko" value={ownerStores.length} color="primary" />
+            <StatCard icon={<Package className="h-5 w-5" />} label="Total Produk" value={totalProducts} color="sky" />
+            <StatCard icon={<ShieldCheck className="h-5 w-5" />} label="Toko Active" value={activeStores.length} color="emerald" />
+            <StatCard icon={<Clock className="h-5 w-5" />} label="Produk Approved" value={approvedProducts} color="amber" />
+          </section>
+          <StoreSection stores={ownerStores} />
+        </>
+      }
+      storesContent={<StoresTable stores={ownerStores} canEdit />}
+      productsContent={
+        <ProductSection
+          products={ownerProducts}
+          activeStores={activeStores.map((s) => ({ id: s.id, name: s.name }))}
+          availableCategories={allCategories.map((c) => ({ id: c.id, name: c.name }))}
+        />
+      }
+      categoriesContent={<CategorySection categories={allCategories} />}
+    />
   );
 }
 
-async function AdminDashboard({ userName }: { userName: string }) {
+async function AdminDashboard({
+  userName,
+  activeTab,
+}: {
+  userName: string;
+  activeTab: string;
+}) {
   const storeRows = await db
     .select({
       id: stores.id,
@@ -182,6 +188,8 @@ async function AdminDashboard({ userName }: { userName: string }) {
       address: stores.address,
       regency: stores.regency,
       district: stores.district,
+      province: stores.province,
+      village: stores.village,
       whatsappNumber: stores.whatsappNumber,
       status: stores.status,
       adminNote: stores.adminNote,
@@ -216,213 +224,369 @@ async function AdminDashboard({ userName }: { userName: string }) {
     )
     .orderBy(desc(products.createdAt));
 
-  return (
-    <DashboardShell title="Dashboard Admin" userName={userName}>
-      <section className="rounded-3xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold">Moderasi Toko</h2>
-        <div className="mt-5 grid gap-4">
-          {storeRows.length === 0 ? (
-            <EmptyState text="Belum ada toko." />
-          ) : (
-            storeRows.map((store) => (
-              <article key={store.id} className="rounded-2xl border p-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/toko/${store.slug}`} className="font-semibold">
-                        {store.name}
-                      </Link>
-                      <StatusBadge value={store.status} />
-                    </div>
-                    <p className="mt-2 text-sm text-slate-500">
-                      Pemilik: {store.ownerName} ({store.ownerEmail})
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {store.address}, {store.district}, {store.regency} | WA: {store.whatsappNumber}
-                    </p>
-                  </div>
-                  <ModerateStoreForm id={store.id} status={store.status} adminNote={store.adminNote ?? ""} />
-                </div>
-                <MentoringForm ownerId={store.ownerId} storeId={store.id} />
-              </article>
-            ))
-          )}
-        </div>
-      </section>
+  const totalStores = storeRows.length;
+  const pendingStores = storeRows.filter((s) => s.status === "pending").length;
+  const totalProducts = productRows.length;
+  const pendingProducts = productRows.filter((p) => p.status === "pending").length;
 
-      <section className="rounded-3xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold">Moderasi Produk</h2>
-        <ProductList products={productRows} canDelete admin />
-      </section>
-    </DashboardShell>
+  return (
+    <SidebarDashboardClient
+      userName={userName}
+      userRole="admin"
+      activeTab={activeTab}
+      overviewContent={
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={<Store className="h-5 w-5" />} label="Total Toko" value={totalStores} color="primary" />
+          <StatCard icon={<Clock className="h-5 w-5" />} label="Toko Pending" value={pendingStores} color="amber" />
+          <StatCard icon={<Package className="h-5 w-5" />} label="Total Produk" value={totalProducts} color="sky" />
+          <StatCard icon={<AlertCircle className="h-5 w-5" />} label="Produk Pending" value={pendingProducts} color="rose" />
+        </section>
+      }
+      storesContent={<AdminStoresTable stores={storeRows} />}
+      productsContent={<AdminProductsTable products={productRows} />}
+    />
   );
 }
 
-function DashboardShell({
-  title,
+async function CustomerDashboard({
   userName,
-  children,
+  activeTab,
 }: {
-  title: string;
   userName: string;
-  children: React.ReactNode;
+  activeTab: string;
 }) {
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-28 text-slate-900">
-      <section className="mx-auto flex max-w-7xl flex-col gap-6">
-        <div className="rounded-3xl border bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="inline-flex rounded-full border px-3 py-1 text-sm text-slate-600">
-                {title}
-              </p>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight">
-                Halo, {userName}
-              </h1>
+    <SidebarDashboardClient
+      userName={userName}
+      userRole="customer"
+      activeTab={activeTab}
+      overviewContent={
+        <section className="rounded-3xl border bg-white p-8 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+              <UserCircle className="h-6 w-6" />
             </div>
-            <form action={logout}>
-              <button className="rounded-2xl border px-4 py-3 text-sm font-semibold hover:bg-slate-100">
-                Logout
-              </button>
-            </form>
+            <div>
+              <h2 className="text-lg font-semibold">Selamat Datang</h2>
+              <p className="mt-2 max-w-xl leading-relaxed text-slate-600">
+                Akun customer tidak perlu dashboard. Silakan cari produk UMKM dan pesan
+                langsung lewat WhatsApp.
+              </p>
+              <Link
+                href="/produk"
+                className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 hover:shadow-lg"
+              >
+                Cari Produk <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
-        </div>
-        {children}
-      </section>
-    </main>
+        </section>
+      }
+    />
   );
 }
 
-function CreateStoreCard() {
-  return (
-    <form action={createStoreFromForm} className="rounded-3xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold">Buat Toko</h2>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Input name="name" label="Nama toko" required />
-        <Input name="whatsappNumber" label="Nomor WhatsApp" placeholder="62812..." required />
-        <Input name="regency" label="Kabupaten/kota" placeholder="Lampung Utara" required />
-        <Input name="district" label="Kecamatan" placeholder="Kotabumi" required />
-        <TextArea name="address" label="Alamat lengkap" required />
-        <TextArea name="description" label="Deskripsi toko" required />
-      </div>
-      <SubmitButton label="Ajukan Toko" />
-    </form>
-  );
-}
+// ==================== Table Components ====================
 
-function CreateProductForm({
-  stores: activeStores,
+async function StoresTable({
+  stores,
+  canEdit = false,
 }: {
-  stores: { id: string; name: string }[];
+  stores: typeof import("@/db/schema").stores.$inferSelect[];
+  canEdit?: boolean;
 }) {
   return (
-    <form action={createProductFromForm} className="mt-5 grid gap-3 md:grid-cols-2">
-      <label className="space-y-2 text-sm font-medium text-slate-700">
-        <span>Toko</span>
-        <select name="storeId" className="w-full rounded-2xl border px-4 py-3" required>
-          {activeStores.map((store) => (
-            <option key={store.id} value={store.id}>
-              {store.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <Input name="name" label="Nama produk" required />
-      <Input name="category" label="Kategori" placeholder="Kuliner, fashion, jasa..." required />
-      <Input name="price" label="Harga" type="number" min="1" step="100" required />
-      <TextArea name="description" label="Deskripsi produk" />
-      <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
-        <span>Foto produk, maksimal 5</span>
-        <input
-          name="images"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          multiple
-          required
-          className="w-full rounded-2xl border px-4 py-3 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-white"
-        />
-      </label>
-      <SubmitButton label="Tambah Produk" />
-    </form>
+    <section className="rounded-3xl border bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Daftar Toko</h2>
+        <span className="text-sm text-slate-500">{stores.length} toko</span>
+      </div>
+      <div className="mt-5 overflow-x-auto">
+        {stores.length === 0 ? (
+          <EmptyState text="Belum ada toko." />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Nama Toko</TableHead>
+                <TableHead>Lokasi</TableHead>
+                <TableHead>WhatsApp</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {stores.map((store) => (
+                <TableRow key={store.id} className="group border-b transition hover:bg-slate-50">
+                  <TableCell className="font-medium">
+                    <Link href={`/toko/${store.slug}`} className="transition hover:text-primary">
+                      {store.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-slate-500">
+                    {[store.regency, store.province].filter(Boolean).join(", ")}
+                  </TableCell>
+                  <TableCell className="text-slate-500">{store.whatsappNumber}</TableCell>
+                  <TableCell>
+                    <StatusBadge value={store.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/toko/${store.slug}`}
+                        className="inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> Lihat
+                      </Link>
+                      {canEdit && <EditStoreButton store={store} />}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </section>
   );
 }
 
-function ProductList({
-  products: productRows,
+type ProductWithStore = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  price: string;
+  status: string;
+  adminNote: string | null;
+  createdAt: Date;
+  storeName: string;
+  storeSlug: string;
+  imageUrl: string | null;
+};
+
+async function ProductsTable({
+  products,
+  canEdit = false,
   canDelete = false,
-  admin = false,
 }: {
-  products: {
+  products: ProductWithStore[];
+  canEdit?: boolean;
+  canDelete?: boolean;
+}) {
+  return (
+    <section className="rounded-3xl border bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Daftar Produk</h2>
+        <span className="text-sm text-slate-500">{products.length} produk</span>
+      </div>
+      <div className="mt-5 overflow-x-auto">
+        {products.length === 0 ? (
+          <EmptyState text="Belum ada produk." />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Produk</TableHead>
+                <TableHead>Toko</TableHead>
+                <TableHead>Kategori</TableHead>
+                <TableHead>Harga</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((product) => (
+                <TableRow key={product.id} className="group border-b transition hover:bg-slate-50">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-slate-100">
+                        {product.imageUrl ? (
+                          <Image src={product.imageUrl} alt={product.name} fill unoptimized className="object-cover" sizes="40px" />
+                        ) : (
+                          <Package className="absolute inset-0 m-auto h-5 w-5 text-slate-300" />
+                        )}
+                      </div>
+                      <span className="font-medium text-slate-900">{product.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-slate-500">{product.storeName}</TableCell>
+                  <TableCell className="text-slate-500">{product.category}</TableCell>
+                  <TableCell className="font-medium text-slate-900">
+                    Rp {Number(product.price).toLocaleString("id-ID")}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge value={product.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/toko/${product.storeSlug}/produk/${product.slug}`}
+                        className="inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> Lihat
+                      </Link>
+                      {canEdit && <EditProductButton product={product} />}
+                      {canDelete && (
+                        <form action={deleteProductFromForm}>
+                          <input type="hidden" name="id" value={product.id} />
+                          <button className="inline-flex items-center gap-1 rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-50">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </section>
+  );
+}
+
+async function AdminStoresTable({
+  stores,
+}: {
+  stores: {
     id: string;
     slug: string;
     name: string;
     description: string;
-    category: string;
-    price: string;
+    address: string;
+    regency: string;
+    district: string;
+    province: string;
+    village: string;
+    whatsappNumber: string;
     status: string;
     adminNote: string | null;
-    storeName: string;
-    storeSlug: string;
-    imageUrl: string | null;
+    ownerId: string;
+    ownerName: string;
+    ownerEmail: string;
   }[];
-  canDelete?: boolean;
-  admin?: boolean;
 }) {
-  if (productRows.length === 0) {
-    return <EmptyState text="Belum ada produk." />;
-  }
-
   return (
-    <div className="mt-5 grid gap-4">
-      {productRows.map((product) => (
-        <article key={product.id} className="rounded-2xl border p-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start">
-            <div className="relative h-28 w-full overflow-hidden rounded-2xl bg-slate-100 md:w-28">
-              {product.imageUrl ? (
-                <Image src={product.imageUrl} alt={product.name} fill unoptimized className="object-cover" sizes="112px" />
-              ) : null}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href={`/toko/${product.storeSlug}/produk/${product.slug}`}
-                  className="font-semibold"
-                >
-                  {product.name}
-                </Link>
-                <StatusBadge value={product.status} />
-              </div>
-              <p className="mt-1 text-sm text-slate-500">
-                {product.storeName} | {product.category} | Rp {Number(product.price).toLocaleString("id-ID")}
-              </p>
-              <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
-                {product.description || "Tidak ada deskripsi."}
-              </p>
-              {product.adminNote ? (
-                <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-                  Catatan admin: {product.adminNote}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex min-w-52 flex-col gap-2">
-              {admin ? (
-                <ModerateProductForm id={product.id} status={product.status} adminNote={product.adminNote ?? ""} />
-              ) : null}
-              {canDelete ? (
-                <form action={deleteProductFromForm}>
-                  <input type="hidden" name="id" value={product.id} />
-                  <button className="w-full rounded-2xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50">
-                    Hapus Produk
-                  </button>
-                </form>
-              ) : null}
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
+    <section className="rounded-3xl border bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
+          <ShieldCheck className="h-5 w-5" />
+        </div>
+        <h2 className="text-xl font-semibold">Moderasi Toko</h2>
+      </div>
+      <div className="mt-5 overflow-x-auto">
+        {stores.length === 0 ? (
+          <EmptyState text="Belum ada toko." />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Nama Toko</TableHead>
+                <TableHead>Pemilik</TableHead>
+                <TableHead>Lokasi</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {stores.map((store) => (
+                <TableRow key={store.id} className="group border-b transition hover:bg-slate-50">
+                  <TableCell className="font-medium">
+                    <Link href={`/toko/${store.slug}`} className="transition hover:text-primary">
+                      {store.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-slate-500">
+                    {store.ownerName} ({store.ownerEmail})
+                  </TableCell>
+                  <TableCell className="text-slate-500">
+                    {[store.regency, store.province].filter(Boolean).join(", ")}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge value={store.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <ModerateStoreForm id={store.id} status={store.status} adminNote={store.adminNote ?? ""} />
+                      <MentoringForm ownerId={store.ownerId} storeId={store.id} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </section>
   );
 }
+
+async function AdminProductsTable({
+  products,
+}: {
+  products: ProductWithStore[];
+}) {
+  return (
+    <section className="rounded-3xl border bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-600">
+          <Package className="h-5 w-5" />
+        </div>
+        <h2 className="text-xl font-semibold">Moderasi Produk</h2>
+      </div>
+      <div className="mt-5">
+        {products.length === 0 ? (
+          <EmptyState text="Belum ada produk." />
+        ) : (
+          <div className="grid gap-4">
+            {products.map((product) => (
+              <article key={product.id} className="group rounded-2xl border p-4 transition hover:border-primary/30 hover:shadow-sm">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                  <div className="relative h-28 w-full overflow-hidden rounded-2xl bg-slate-100 md:w-28">
+                    {product.imageUrl ? (
+                      <Image src={product.imageUrl} alt={product.name} fill unoptimized className="object-cover" sizes="112px" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Package className="h-8 w-8 text-slate-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link href={`/toko/${product.storeSlug}/produk/${product.slug}`} className="font-semibold transition hover:text-primary">
+                        {product.name}
+                      </Link>
+                      <StatusBadge value={product.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {product.storeName} | {product.category} | Rp {Number(product.price).toLocaleString("id-ID")}
+                    </p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+                      {product.description || "Tidak ada deskripsi."}
+                    </p>
+                    {product.adminNote ? (
+                      <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+                        Catatan admin: {product.adminNote}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex min-w-52 flex-col gap-2">
+                    <ModerateProductForm id={product.id} status={product.status} adminNote={product.adminNote ?? ""} />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ==================== Helper Components ====================
 
 function ModerateStoreForm({
   id,
@@ -504,42 +668,57 @@ function MentoringForm({ ownerId, storeId }: { ownerId: string; storeId: string 
   );
 }
 
-function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  return (
-    <label className="space-y-2 text-sm font-medium text-slate-700">
-      <span>{label}</span>
-      <input {...props} className="w-full rounded-2xl border px-4 py-3 text-slate-900" />
-    </label>
-  );
-}
-
-function TextArea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
-  return (
-    <label className="space-y-2 text-sm font-medium text-slate-700 sm:col-span-2">
-      <span>{label}</span>
-      <textarea {...props} className="min-h-24 w-full rounded-2xl border px-4 py-3 text-slate-900" />
-    </label>
-  );
-}
-
-function SubmitButton({ label }: { label: string }) {
-  return (
-    <div className="mt-4 md:col-span-2">
-      <button className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">
-        {label}
-      </button>
-    </div>
-  );
-}
-
 function StatusBadge({ value }: { value: string }) {
+  const config = statusConfig[value] ?? {
+    bg: "bg-slate-100",
+    text: "text-slate-700",
+    border: "border-slate-200",
+    icon: null,
+  };
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClassName[value] ?? "bg-slate-100 text-slate-700"}`}>
-      {value}
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${config.bg} ${config.text} ${config.border}`}>
+      {config.icon} {value}
     </span>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">{text}</p>;
+  return (
+    <div className="mt-5 flex flex-col items-center justify-center rounded-2xl bg-slate-50 p-6 text-center">
+      <Package className="h-8 w-8 text-slate-300" />
+      <p className="mt-2 text-sm text-slate-500">{text}</p>
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  color: "primary" | "sky" | "emerald" | "amber" | "rose";
+}) {
+  const colorMap = {
+    primary: "bg-primary/10 text-primary",
+    sky: "bg-sky-50 text-sky-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    amber: "bg-amber-50 text-amber-600",
+    rose: "bg-rose-50 text-rose-600",
+  };
+
+  return (
+    <div className="rounded-3xl border bg-white p-5 shadow-sm transition hover:shadow-md">
+      <div className="flex items-center gap-3">
+        <div className={`rounded-2xl p-2.5 ${colorMap[color]}`}>{icon}</div>
+        <div>
+          <p className="text-2xl font-bold">{value}</p>
+          <p className="text-sm text-slate-500">{label}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
