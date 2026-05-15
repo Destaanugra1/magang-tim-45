@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, Store, Tag, MessageCircle } from "lucide-react";
 import { db } from "@/db";
 import { productImages, products, stores } from "@/db/schema";
-import { createWhatsAppUrl } from "@/lib/whatsapp";
 import { ProductGallery } from "@/components/ui/product-gallery";
 
 export default async function ProductSlugDetailPage({
@@ -50,24 +49,8 @@ export default async function ProductSlugDetailPage({
     .where(eq(productImages.productId, product.id))
     .orderBy(productImages.sortOrder);
 
-  const primaryImage = images[0]?.imageUrl ?? "";
-  const productPath = `/toko/${product.storeSlug}/produk/${product.slug}`;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const productUrl = `${appUrl}${productPath}`;
   const locationParts = [product.village, product.district, product.regency, product.province].filter(Boolean);
   const fullAddress = [product.storeAddress, ...locationParts].filter(Boolean).join(", ");
-
-  const whatsappUrl = createWhatsAppUrl(
-    product.whatsappNumber,
-    [
-      "Halo, saya tertarik dengan produk ini:",
-      `📦 ${product.name}`,
-      `💰 Rp ${Number(product.price).toLocaleString("id-ID")}`,
-      `🏪 ${product.storeName}`,
-      `📍 ${fullAddress}`,
-      `🔗 ${productUrl}`,
-    ].join("\n"),
-  );
 
   return (
     <main className="min-h-screen bg-[#f8f8f6] pt-24 pb-20">
@@ -130,7 +113,7 @@ export default async function ProductSlugDetailPage({
 
             {/* CTA */}
             <a
-              href={whatsappUrl}
+              href={`/api/whatsapp-click?productId=${product.id}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"

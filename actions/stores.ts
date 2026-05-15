@@ -3,7 +3,7 @@
 import { count, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { mentoringNotes, stores } from "@/db/schema";
+import { mentoringNotes, notifications, stores } from "@/db/schema";
 import { safeAuth } from "@/lib/auth/safe-auth";
 import { withSlugFallback } from "@/lib/slug";
 import { MAX_STORES_PER_OWNER } from "@/lib/stores/constants";
@@ -113,6 +113,17 @@ export async function updateStoreStatus(
     );
   }
 
+  const existingStore = await db.query.stores.findFirst({
+    where: eq(stores.id, validatedFields.data.id),
+  });
+
+  if (!existingStore) {
+    return {
+      success: false,
+      message: "Toko tidak ditemukan.",
+    };
+  }
+
   await db
     .update(stores)
     .set({
@@ -120,6 +131,15 @@ export async function updateStoreStatus(
       adminNote: validatedFields.data.adminNote || null,
     })
     .where(eq(stores.id, validatedFields.data.id));
+
+  await db.insert(notifications).values({
+    userId: existingStore.ownerId,
+    type: "store_status",
+    title: "Status toko diperbarui",
+    message: `Toko ${existingStore.name} sekarang ${validatedFields.data.status}.${
+      validatedFields.data.adminNote ? ` Catatan: ${validatedFields.data.adminNote}` : ""
+    }`,
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/produk");

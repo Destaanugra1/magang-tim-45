@@ -1,4 +1,5 @@
 import React from 'react'
+import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 
 const page = () => {
@@ -24,10 +25,10 @@ const page = () => {
           <h2 className="text-2xl font-semibold">Kirim Pesan</h2>
           <p className="text-slate-500 mt-2">Balas cepat dan profesional.</p>
           <div className="mt-6 space-y-4">
-            <input className="w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-slate-200" placeholder="Nama lengkap" />
-            <input className="w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-slate-200" placeholder="Email aktif" />
-            <input className="w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-slate-200" placeholder="Subjek" />
-            <textarea rows={5} className="w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-slate-200" placeholder="Tulis kebutuhan Anda..."></textarea>
+            <FormInput label="Nama lengkap" hideLabel placeholder="Nama lengkap" inputClassName="bg-white focus:bg-white focus:ring-2 focus:ring-slate-200" />
+            <FormInput label="Email aktif" hideLabel type="email" placeholder="Email aktif" inputClassName="bg-white focus:bg-white focus:ring-2 focus:ring-slate-200" />
+            <FormInput label="Subjek" hideLabel placeholder="Subjek" inputClassName="bg-white focus:bg-white focus:ring-2 focus:ring-slate-200" />
+            <FormTextarea label="Kebutuhan" hideLabel rows={5} placeholder="Tulis kebutuhan Anda..." textareaClassName="bg-white focus:bg-white focus:ring-2 focus:ring-slate-200" />
             <button className="w-full rounded-2xl bg-slate-900 text-white py-3 hover:opacity-90 transition">Kirim Sekarang</button>
           </div>
         </FadeIn>

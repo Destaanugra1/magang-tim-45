@@ -136,7 +136,7 @@ export function StoreSection({
           <div className="rounded-2xl bg-slate-50 p-8 text-center">
             <Store className="mx-auto h-10 w-10 text-slate-300" />
             <p className="mt-3 text-sm text-slate-500">
-              Belum ada toko. Klik "Buat Toko" untuk mulai.
+              Belum ada toko. Klik &ldquo;Buat Toko&rdquo; untuk mulai.
             </p>
           </div>
         ) : (

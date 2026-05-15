@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
-import { Modal } from "@/components/ui/modal";
-import { updateStoreFromForm } from "@/actions/stores";
-import { updateProductFromForm, deleteProductFromForm } from "@/actions/products";
-import Link from "next/link";
 import Image from "next/image";
+import { Edit3 } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
+import { FileUpload } from "@/components/ui/file-upload";
+import { FormInput, FormTextarea } from "@/components/ui/form-field";
+import { updateStoreFromForm } from "@/actions/stores";
+import { updateProductFromForm } from "@/actions/products";
 
 type StoreType = {
   id: string;
@@ -57,83 +58,67 @@ export function EditStoreButton({ store }: { store: StoreType }) {
           }}
           className="grid gap-4"
         >
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Nama Toko</label>
-            <input
-              name="name"
-              defaultValue={store.name}
+          <FormInput
+            label="Nama Toko"
+            name="name"
+            defaultValue={store.name}
+            required
+            inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+          />
+          <FormTextarea
+            label="Deskripsi"
+            name="description"
+            defaultValue={store.description}
+            required
+            rows={3}
+            textareaClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormInput
+              label="Provinsi"
+              name="province"
+              defaultValue={store.province}
               required
-              className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
+              inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Deskripsi</label>
-            <textarea
-              name="description"
-              defaultValue={store.description}
+            <FormInput
+              label="Kabupaten/Kota"
+              name="regency"
+              defaultValue={store.regency}
               required
-              className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              rows={3}
+              inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Provinsi</label>
-              <input
-                name="province"
-                defaultValue={store.province}
-                required
-                className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Kabupaten/Kota</label>
-              <input
-                name="regency"
-                defaultValue={store.regency}
-                required
-                className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              />
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Kecamatan</label>
-              <input
-                name="district"
-                defaultValue={store.district}
-                required
-                className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Desa/Kelurahan</label>
-              <input
-                name="village"
-                defaultValue={store.village}
-                className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Alamat Detail</label>
-            <textarea
-              name="address"
-              defaultValue={store.address}
+            <FormInput
+              label="Kecamatan"
+              name="district"
+              defaultValue={store.district}
               required
-              className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              rows={2}
+              inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+            />
+            <FormInput
+              label="Desa/Kelurahan"
+              name="village"
+              defaultValue={store.village}
+              inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">WhatsApp</label>
-            <input
-              name="whatsappNumber"
-              defaultValue={store.whatsappNumber}
-              required
-              className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-            />
-          </div>
+          <FormTextarea
+            label="Alamat Detail"
+            name="address"
+            defaultValue={store.address}
+            required
+            rows={2}
+            textareaClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+          />
+          <FormInput
+            label="WhatsApp"
+            name="whatsappNumber"
+            defaultValue={store.whatsappNumber}
+            required
+            inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+          />
           <div className="flex gap-2 pt-2">
             <button
               type="button"
@@ -157,6 +142,7 @@ export function EditStoreButton({ store }: { store: StoreType }) {
 
 export function EditProductButton({ product }: { product: ProductWithStore }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   return (
     <>
@@ -170,49 +156,74 @@ export function EditProductButton({ product }: { product: ProductWithStore }) {
         <form
           action={async (formData: FormData) => {
             formData.append("id", product.id);
+            imageFiles.forEach((file) => {
+              formData.append("images", file);
+            });
             await updateProductFromForm(formData);
+            setImageFiles([]);
             setModalOpen(false);
           }}
           className="grid gap-4"
         >
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Nama Produk</label>
-            <input
-              name="name"
-              defaultValue={product.name}
-              required
-              className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-            />
-          </div>
+          <FormInput
+            label="Nama Produk"
+            name="name"
+            defaultValue={product.name}
+            required
+            inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+          />
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Kategori</label>
-              <input
-                name="category"
-                defaultValue={product.category}
-                required
-                className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Harga</label>
-              <input
-                name="price"
-                type="number"
-                defaultValue={product.price}
-                required
-                className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Deskripsi</label>
-            <textarea
-              name="description"
-              defaultValue={product.description}
-              className="w-full rounded-xl border px-4 py-2.5 text-slate-900"
-              rows={4}
+            <FormInput
+              label="Kategori"
+              name="category"
+              defaultValue={product.category}
+              required
+              inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
             />
+            <FormInput
+              label="Harga"
+              name="price"
+              type="number"
+              defaultValue={product.price}
+              required
+              inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+            />
+          </div>
+          <FormTextarea
+            label="Deskripsi"
+            name="description"
+            defaultValue={product.description}
+            rows={4}
+            textareaClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+          />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-slate-700">Foto Produk</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Upload foto baru untuk mengganti semua foto produk saat ini.
+                </p>
+              </div>
+              {product.imageUrl ? (
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-slate-200">
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="56px"
+                  />
+                </div>
+              ) : null}
+            </div>
+            <div className="rounded-2xl border border-dashed border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black">
+              <FileUpload
+                maxFiles={5}
+                accept="image/png,image/jpeg,image/webp"
+                onChange={setImageFiles}
+              />
+            </div>
           </div>
           <div className="flex gap-2 pt-2">
             <button

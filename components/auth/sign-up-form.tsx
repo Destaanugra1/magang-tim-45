@@ -1,11 +1,12 @@
 "use client";
 
-import { CircleAlert, CircleCheckBig, ImagePlus } from "lucide-react";
+import { CircleAlert, CircleCheckBig } from "lucide-react";
 import { useActionState, useState } from "react";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { register } from "@/actions/auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FormInput } from "@/components/ui/form-field";
+import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { defaultAuthState } from "@/lib/auth/default-auth-state";
 
 export function SignUpForm() {
@@ -26,27 +27,16 @@ export function SignUpForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-4" encType="multipart/form-data">
+    <form action={formAction} className="space-y-4">
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
-      <div>
-        <label
-          htmlFor="name"
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          Nama
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          placeholder="Nama lengkap"
-          required
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-        />
-        {state.errors?.name ? (
-          <p className="mt-2 text-sm text-rose-600">{state.errors.name[0]}</p>
-        ) : null}
-      </div>
+      <FormInput
+        label="Nama"
+        name="name"
+        type="text"
+        placeholder="Nama lengkap"
+        required
+        errors={state.errors?.name}
+      />
 
       <div>
         <label
@@ -71,92 +61,37 @@ export function SignUpForm() {
       </div>
 
       {role === "pengusaha" ? (
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            Foto Profil Toko <span className="text-rose-500">*</span>
-          </label>
-          <label
-            htmlFor="photo"
-            className="flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-5 transition hover:border-slate-400 hover:bg-white"
-          >
-            {photoPreview ? (
-              <div className="relative h-24 w-24 overflow-hidden rounded-full">
-                <Image
-                  src={photoPreview}
-                  alt="Preview foto profil"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-slate-400">
-                <ImagePlus className="h-7 w-7" />
-              </div>
-            )}
-            <div className="text-center">
-              <p className="text-sm font-medium text-slate-700">
-                {photoPreview ? "Ganti foto" : "Upload foto profil toko"}
-              </p>
-              <p className="mt-1 text-xs text-slate-400">JPG, PNG, WEBP — maks 3 MB</p>
-            </div>
-          </label>
-          <input
-            id="photo"
-            name="photo"
-            type="file"
-            accept="image/*"
-            required
-            onChange={handlePhotoChange}
-            className="sr-only"
-          />
-          <p className="mt-1.5 text-xs text-slate-500">
-            Foto ini akan ditampilkan sebagai profil toko Anda di halaman produk.
-          </p>
-        </div>
+        <ImageUploadField
+          id="photo"
+          name="photo"
+          label="Foto Profil Toko"
+          preview={photoPreview}
+          onChange={handlePhotoChange}
+          required
+          emptyText="Upload foto profil toko"
+          filledText="Ganti foto"
+          previewAlt="Preview foto profil"
+          helperText="Foto ini akan ditampilkan sebagai profil toko Anda di halaman produk."
+        />
       ) : null}
 
-      <div>
-        <label
-          htmlFor="email"
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="nama@email.com"
-          required
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-        />
-        {state.errors?.email ? (
-          <p className="mt-2 text-sm text-rose-600">{state.errors.email[0]}</p>
-        ) : null}
-      </div>
+      <FormInput
+        label="Email"
+        name="email"
+        type="email"
+        placeholder="nama@email.com"
+        required
+        errors={state.errors?.email}
+      />
 
-      <div>
-        <label
-          htmlFor="password"
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="Minimal 8 karakter"
-          required
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-        />
-        {state.errors?.password ? (
-          <p className="mt-2 text-sm text-rose-600">
-            {state.errors.password[0]}
-          </p>
-        ) : null}
-      </div>
+      <FormInput
+        label="Password"
+        name="password"
+        type="password"
+        placeholder="Minimal 8 karakter"
+        required
+        errors={state.errors?.password}
+      />
 
       {state.message ? (
         <Alert variant={state.success ? "default" : "destructive"}>

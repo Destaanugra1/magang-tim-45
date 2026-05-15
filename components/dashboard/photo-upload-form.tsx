@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Image from "next/image";
 import { ImagePlus, CircleCheckBig, CircleAlert } from "lucide-react";
 import { updateUserPhoto } from "@/actions/auth";
+import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { defaultAuthState } from "@/lib/auth/default-auth-state";
 
 export function PhotoUploadForm() {
@@ -30,34 +30,18 @@ export function PhotoUploadForm() {
       </div>
 
       <form action={formAction} className="mt-5 flex flex-col gap-4" encType="multipart/form-data">
-        <label
-          htmlFor="dashboard-photo"
-          className="flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed border-amber-200 bg-white p-4 transition hover:border-amber-400"
-        >
-          {preview ? (
-            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
-              <Image src={preview} alt="Preview" fill className="object-cover" unoptimized />
-            </div>
-          ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-400">
-              <ImagePlus className="h-7 w-7" />
-            </div>
-          )}
-          <div>
-            <p className="text-sm font-medium text-slate-700">
-              {preview ? "Ganti foto profil" : "Pilih foto profil toko"}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-400">JPG, PNG, WEBP — maks 3 MB</p>
-          </div>
-        </label>
-        <input
+        <ImageUploadField
           id="dashboard-photo"
           name="photo"
-          type="file"
-          accept="image/*"
-          required
+          label="Foto profil toko"
+          preview={preview}
           onChange={handleChange}
-          className="sr-only"
+          required
+          emptyText="Pilih foto profil toko"
+          filledText="Ganti foto profil"
+          previewAlt="Preview foto profil"
+          layout="inline"
+          tone="amber"
         />
 
         {state.message ? (

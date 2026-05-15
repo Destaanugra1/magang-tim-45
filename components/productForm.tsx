@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { createProduct } from "@/actions/products";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import { defaultProductState } from "@/lib/products/default-product-state";
 
 export function ProductForm() {
@@ -15,54 +16,32 @@ export function ProductForm() {
       action={formAction}
       className="space-y-5 rounded-3xl border bg-white p-6 shadow-sm"
     >
-      <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
-          Nama Produk
-        </label>
-        <input
-          name="name"
-          type="text"
-          required
-          placeholder="Contoh: Kopi Arabica"
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-        />
-        {state.errors?.name ? (
-          <p className="mt-2 text-sm text-rose-600">{state.errors.name[0]}</p>
-        ) : null}
-      </div>
+      <FormInput
+        label="Nama Produk"
+        name="name"
+        type="text"
+        required
+        placeholder="Contoh: Kopi Arabica"
+        errors={state.errors?.name}
+      />
 
-      <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
-          Harga
-        </label>
-        <input
-          name="price"
-          type="number"
-          step="100"
-          required
-          placeholder="Contoh: 25000"
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-        />
-        {state.errors?.price ? (
-          <p className="mt-2 text-sm text-rose-600">{state.errors.price[0]}</p>
-        ) : null}
-      </div>
+      <FormInput
+        label="Harga"
+        name="price"
+        type="number"
+        step="100"
+        required
+        placeholder="Contoh: 25000"
+        errors={state.errors?.price}
+      />
 
-      <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
-          Deskripsi
-        </label>
-        <textarea
-          name="description"
-          placeholder="Deskripsi singkat produk"
-          className="min-h-32 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-        />
-        {state.errors?.description ? (
-          <p className="mt-2 text-sm text-rose-600">
-            {state.errors.description[0]}
-          </p>
-        ) : null}
-      </div>
+      <FormTextarea
+        label="Deskripsi"
+        name="description"
+        placeholder="Deskripsi singkat produk"
+        errors={state.errors?.description}
+        textareaClassName="min-h-32"
+      />
 
       <div>
         <label className="mb-2 block text-sm font-medium text-slate-700">

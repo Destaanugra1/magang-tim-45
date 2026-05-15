@@ -4,7 +4,7 @@ import { Buffer } from "node:buffer";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { productImages, products, stores } from "@/db/schema";
+import { notifications, productImages, products, stores } from "@/db/schema";
 import { safeAuth } from "@/lib/auth/safe-auth";
 import { withSlugFallback } from "@/lib/slug";
 import {
@@ -12,12 +12,15 @@ import {
   getCreateProductInput,
   getProductModerationInput,
   getUpdateProductInput,
+  productImageMaxSize,
+  productImageTypes,
   productModerationSchema,
   type ProductActionState,
   updateProductSchema,
 } from "@/lib/products/validation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { createValidationErrorState } from "@/lib/validation/action-state";
+import { getFormDataFiles } from "@/lib/validation/form-data";
 
 const PRODUCT_BUCKET = "vinix";
 
@@ -80,6 +83,48 @@ async function getOwnedStore(storeId: string, ownerId: string) {
   return db.query.stores.findFirst({
     where: and(eq(stores.id, storeId), eq(stores.ownerId, ownerId)),
   });
+}
+
+function validateProductImages(images: File[]) {
+  if (images.length > 5) {
+    return "Maksimal 5 gambar produk.";
+  }
+
+  for (const image of images) {
+    if (!productImageTypes.includes(image.type as (typeof productImageTypes)[number])) {
+      return "Format gambar harus JPG, PNG, atau WEBP.";
+    }
+
+    if (image.size > productImageMaxSize) {
+      return "Ukuran gambar maksimal 2MB.";
+    }
+  }
+
+  return null;
+}
+
+async function replaceProductImages(productId: string, images: File[]) {
+  const uploadedImages = await Promise.all(
+    images.map((image, index) => uploadProductImage(image, productId, index)),
+  );
+
+  const oldImages = await db
+    .select({ imagePath: productImages.imagePath })
+    .from(productImages)
+    .where(eq(productImages.productId, productId));
+
+  await db.delete(productImages).where(eq(productImages.productId, productId));
+  await db.insert(productImages).values(uploadedImages);
+
+  if (oldImages.length > 0) {
+    const { error } = await supabaseAdmin.storage
+      .from(PRODUCT_BUCKET)
+      .remove(oldImages.map((image) => image.imagePath));
+
+    if (error) {
+      console.error("[replaceProductImages] Failed to remove old images.", error);
+    }
+  }
 }
 
 export async function createProduct(
@@ -187,6 +232,18 @@ export async function updateProduct(
   }
 
   const { id: productId, ...payload } = validatedFields.data;
+  const replacementImages = getFormDataFiles(formData, "images").filter(
+    (image) => image.size > 0,
+  );
+  const imageError = validateProductImages(replacementImages);
+
+  if (imageError) {
+    return {
+      success: false,
+      message: imageError,
+    };
+  }
+
   const [existingProduct] = await db
     .select({ id: products.id, ownerId: stores.ownerId })
     .from(products)
@@ -214,6 +271,19 @@ export async function updateProduct(
       status: "pending",
     })
     .where(eq(products.id, productId));
+
+  if (replacementImages.length > 0) {
+    try {
+      await replaceProductImages(productId, replacementImages);
+    } catch (error) {
+      return {
+        success: false,
+        message: `Gagal update gambar: ${
+          error instanceof Error ? error.message : "coba lagi"
+        }`,
+      };
+    }
+  }
 
   revalidateProductPages();
 
@@ -317,6 +387,22 @@ export async function updateProductStatus(
     );
   }
 
+  const [existingProduct] = await db
+    .select({
+      name: products.name,
+      ownerId: stores.ownerId,
+    })
+    .from(products)
+    .innerJoin(stores, eq(products.storeId, stores.id))
+    .where(eq(products.id, validatedFields.data.id));
+
+  if (!existingProduct) {
+    return {
+      success: false,
+      message: "Produk tidak ditemukan.",
+    };
+  }
+
   await db
     .update(products)
     .set({
@@ -324,6 +410,15 @@ export async function updateProductStatus(
       adminNote: validatedFields.data.adminNote || null,
     })
     .where(eq(products.id, validatedFields.data.id));
+
+  await db.insert(notifications).values({
+    userId: existingProduct.ownerId,
+    type: "product_status",
+    title: "Status produk diperbarui",
+    message: `Produk ${existingProduct.name} sekarang ${validatedFields.data.status}.${
+      validatedFields.data.adminNote ? ` Catatan: ${validatedFields.data.adminNote}` : ""
+    }`,
+  });
 
   revalidateProductPages();
 

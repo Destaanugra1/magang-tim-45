@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import { defaultProductState } from "@/lib/products/default-product-state";
 import type { ProductActionState } from "@/lib/products/validation";
 
@@ -280,53 +281,38 @@ function CreateProductDialog({
           action={formAction}
           className="mt-6 grid gap-4 md:grid-cols-2"
         >
-          <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Nama Produk
-            </label>
-            <input
-              name="name"
-              type="text"
-              required
-              placeholder="Contoh: Kopi Arabica"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-            />
-            {state.errors?.name ? (
-              <p className="text-xs text-rose-600">{state.errors.name[0]}</p>
-            ) : null}
-          </div>
+          <FormInput
+            label="Nama Produk"
+            name="name"
+            type="text"
+            required
+            placeholder="Contoh: Kopi Arabica"
+            errors={state.errors?.name}
+            labelClassName="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            inputClassName="bg-white text-sm focus:bg-white"
+          />
 
-          <div className="space-y-2 md:col-span-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Harga
-            </label>
-            <input
-              name="price"
-              type="number"
-              required
-              placeholder="25000"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-            />
-            {state.errors?.price ? (
-              <p className="text-xs text-rose-600">{state.errors.price[0]}</p>
-            ) : null}
-          </div>
+          <FormInput
+            label="Harga"
+            name="price"
+            type="number"
+            required
+            placeholder="25000"
+            errors={state.errors?.price}
+            className="md:col-span-1"
+            labelClassName="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            inputClassName="bg-white text-sm focus:bg-white"
+          />
 
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Deskripsi
-            </label>
-            <textarea
-              name="description"
-              placeholder="Deskripsi singkat produk"
-              className="min-h-24 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-            />
-            {state.errors?.description ? (
-              <p className="text-xs text-rose-600">
-                {state.errors.description[0]}
-              </p>
-            ) : null}
-          </div>
+          <FormTextarea
+            label="Deskripsi"
+            name="description"
+            placeholder="Deskripsi singkat produk"
+            errors={state.errors?.description}
+            className="md:col-span-2"
+            labelClassName="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            textareaClassName="bg-white text-sm focus:bg-white"
+          />
 
           <div className="space-y-2 md:col-span-2">
             <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -471,55 +457,37 @@ function ProductRow({
             >
               <input type="hidden" name="id" value={product.id} />
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Nama Produk
-                </label>
-                <input
-                  name="name"
-                  type="text"
-                  required
-                  defaultValue={product.name}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-                />
-                {state.errors?.name ? (
-                  <p className="text-xs text-rose-600">{state.errors.name[0]}</p>
-                ) : null}
-              </div>
+              <FormInput
+                label="Nama Produk"
+                name="name"
+                type="text"
+                required
+                defaultValue={product.name}
+                errors={state.errors?.name}
+                labelClassName="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                inputClassName="bg-white text-sm focus:bg-white"
+              />
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Harga
-                </label>
-                <input
-                  name="price"
-                  type="number"
-                  min="1"
-                  step="100"
-                  required
-                  defaultValue={String(product.price)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-                />
-                {state.errors?.price ? (
-                  <p className="text-xs text-rose-600">{state.errors.price[0]}</p>
-                ) : null}
-              </div>
+              <FormInput
+                label="Harga"
+                name="price"
+                type="number"
+                step="100"
+                required
+                defaultValue={String(product.price)}
+                errors={state.errors?.price}
+                labelClassName="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                inputClassName="bg-white text-sm focus:bg-white"
+              />
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Deskripsi
-                </label>
-                <textarea
-                  name="description"
-                  defaultValue={product.description}
-                  className="min-h-24 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-                />
-                {state.errors?.description ? (
-                  <p className="text-xs text-rose-600">
-                    {state.errors.description[0]}
-                  </p>
-                ) : null}
-              </div>
+              <FormTextarea
+                label="Deskripsi"
+                name="description"
+                defaultValue={product.description}
+                errors={state.errors?.description}
+                labelClassName="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                textareaClassName="bg-white text-sm focus:bg-white"
+              />
 
               <div className="flex items-end gap-3">
                 <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-slate-200">

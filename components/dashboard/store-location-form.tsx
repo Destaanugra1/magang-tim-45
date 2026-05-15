@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useActionState } from "react";
 import { createStore } from "@/actions/stores";
+import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import type { StoreActionState } from "@/lib/stores/validation";
 
 type Region = {
@@ -40,12 +41,6 @@ export function StoreLocationForm({ onSuccess }: { onSuccess?: () => void } = {}
   const [districtId, setDistrictId] = useState("");
   const [villageId, setVillageId] = useState("");
   const [fetchError, setFetchError] = useState("");
-
-  // Controlled text inputs so form persists on validation errors
-  const [name, setName] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [address, setAddress] = useState("");
-  const [description, setDescription] = useState("");
 
   useEffect(() => {
     let ignore = false;
@@ -182,8 +177,8 @@ export function StoreLocationForm({ onSuccess }: { onSuccess?: () => void } = {}
       ) : null}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Input name="name" label="Nama toko" required errors={state.errors?.name} />
-        <Input name="whatsappNumber" label="Nomor WhatsApp" placeholder="62812..." required errors={state.errors?.whatsappNumber} />
+        <FormInput name="name" label="Nama toko" required errors={state.errors?.name} />
+        <FormInput name="whatsappNumber" label="Nomor WhatsApp" placeholder="62812..." required errors={state.errors?.whatsappNumber} />
         <Select
           label="Provinsi"
           value={provinceId}
@@ -240,8 +235,8 @@ export function StoreLocationForm({ onSuccess }: { onSuccess?: () => void } = {}
           disabled={!districtId}
           errors={state.errors?.village}
         />
-        <TextArea name="address" label="Alamat detail" required errors={state.errors?.address} />
-        <TextArea name="description" label="Deskripsi toko" required errors={state.errors?.description} />
+        <FormTextarea name="address" label="Alamat detail" required errors={state.errors?.address} className="sm:col-span-2" />
+        <FormTextarea name="description" label="Deskripsi toko" required errors={state.errors?.description} className="sm:col-span-2" />
       </div>
 
       <div className="mt-4">
@@ -292,38 +287,6 @@ function Select({
           </option>
         ))}
       </select>
-      {errors?.map((err) => (
-        <p key={err} className="text-xs text-rose-600">{err}</p>
-      ))}
-    </label>
-  );
-}
-
-function Input({
-  label,
-  errors,
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; errors?: string[] }) {
-  return (
-    <label className="space-y-2 text-sm font-medium text-slate-700">
-      <span>{label}</span>
-      <input {...props} className={`w-full rounded-2xl border px-4 py-3 text-slate-900 ${errors ? "border-rose-300" : ""}`} />
-      {errors?.map((err) => (
-        <p key={err} className="text-xs text-rose-600">{err}</p>
-      ))}
-    </label>
-  );
-}
-
-function TextArea({
-  label,
-  errors,
-  ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; errors?: string[] }) {
-  return (
-    <label className="space-y-2 text-sm font-medium text-slate-700 sm:col-span-2">
-      <span>{label}</span>
-      <textarea {...props} className={`min-h-24 w-full rounded-2xl border px-4 py-3 text-slate-900 ${errors ? "border-rose-300" : ""}`} />
       {errors?.map((err) => (
         <p key={err} className="text-xs text-rose-600">{err}</p>
       ))}

@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Modal } from "@/components/ui/modal";
+import { FormInput } from "@/components/ui/form-field";
 import { createCategoryFromForm, deleteCategoryFromForm } from "@/actions/categories";
 
 export type CategoryRow = {
@@ -103,7 +104,7 @@ export function CategorySection({ categories }: { categories: CategoryRow[] }) {
           {categories.length === 0 ? (
             <div className="rounded-2xl bg-slate-50 p-8 text-center">
               <Tag className="mx-auto h-10 w-10 text-slate-300" />
-              <p className="mt-3 text-sm text-slate-500">Belum ada kategori. Klik "Tambah Kategori".</p>
+              <p className="mt-3 text-sm text-slate-500">Belum ada kategori. Klik &ldquo;Tambah Kategori&rdquo;.</p>
             </div>
           ) : (
             <Table>
@@ -162,23 +163,19 @@ export function CategorySection({ categories }: { categories: CategoryRow[] }) {
           }}
           className="flex flex-col gap-4"
         >
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Nama Kategori <span className="text-rose-500">*</span></label>
-            <input
-              name="name"
-              required
-              placeholder="Contoh: Kuliner"
-              className="w-full rounded-2xl border px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Deskripsi</label>
-            <input
-              name="description"
-              placeholder="Opsional"
-              className="w-full rounded-2xl border px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none"
-            />
-          </div>
+          <FormInput
+            label="Nama Kategori"
+            name="name"
+            required
+            placeholder="Contoh: Kuliner"
+            inputClassName="bg-white focus:bg-white"
+          />
+          <FormInput
+            label="Deskripsi"
+            name="description"
+            placeholder="Opsional"
+            inputClassName="bg-white focus:bg-white"
+          />
           <button
             disabled={isCreating}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"

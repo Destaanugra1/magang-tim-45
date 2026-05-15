@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MapPin, MessageCircle, Package, Store } from "lucide-react";
 import { productImages, products, stores, users } from "@/db/schema";
 import { db } from "@/db";
+import { FormInput } from "@/components/ui/form-field";
 
 type StoreCard = {
   id: string;
@@ -140,23 +141,29 @@ export default async function ProdukPage({
         </div>
 
         <form className="mb-8 grid gap-3 rounded-3xl border bg-slate-50 p-4 md:grid-cols-4">
-          <input
+          <FormInput
+            label="Cari toko atau produk"
+            hideLabel
             name="q"
             defaultValue={query}
             placeholder="Cari nama toko atau produk"
-            className="rounded-2xl border bg-white px-4 py-3"
+            inputClassName="bg-white focus:bg-white"
           />
-          <input
+          <FormInput
+            label="Lokasi"
+            hideLabel
             name="lokasi"
             defaultValue={location}
             placeholder="Contoh: Lampung Utara"
-            className="rounded-2xl border bg-white px-4 py-3"
+            inputClassName="bg-white focus:bg-white"
           />
-          <input
+          <FormInput
+            label="Kategori produk"
+            hideLabel
             name="kategori"
             defaultValue={category}
             placeholder="Kategori produk"
-            className="rounded-2xl border bg-white px-4 py-3"
+            inputClassName="bg-white focus:bg-white"
           />
           <button className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white">
             Cari
@@ -286,7 +293,7 @@ export default async function ProdukPage({
                     Lihat Toko
                   </Link>
                   <a
-                    href={`https://wa.me/${store.whatsappNumber.replace(/\D/g, "")}`}
+                    href={`/api/whatsapp-click?storeId=${store.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 rounded-2xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600"

@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { createProductFromForm, deleteProductFromForm } from "@/actions/products";
+import { EditProductButton } from "@/components/dashboard/edit-buttons";
+import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import {
   Table,
   TableBody,
@@ -35,9 +37,11 @@ type ProductWithStore = {
   price: string;
   status: string;
   adminNote: string | null;
+  createdAt: Date;
   storeName: string;
   storeSlug: string;
   imageUrl: string | null;
+  whatsappClicks?: number;
 };
 
 type Toast = { message: string; type: "success" | "error" } | null;
@@ -144,7 +148,7 @@ export function ProductSection({
           <div className="rounded-2xl bg-slate-50 p-8 text-center">
             <Package className="mx-auto h-10 w-10 text-slate-300" />
             <p className="mt-3 text-sm text-slate-500">
-              Belum ada produk. Klik "Tambah Produk" untuk mulai.
+              Belum ada produk. Klik &ldquo;Tambah Produk&rdquo; untuk mulai.
             </p>
           </div>
         ) : (
@@ -155,6 +159,7 @@ export function ProductSection({
                 <TableHead>Toko</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead>Harga</TableHead>
+                <TableHead>Klik WA</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
@@ -186,6 +191,9 @@ export function ProductSection({
                   <TableCell className="font-medium text-slate-900">
                     Rp {Number(product.price).toLocaleString("id-ID")}
                   </TableCell>
+                  <TableCell className="font-medium text-emerald-700">
+                    {product.whatsappClicks ?? 0}
+                  </TableCell>
                   <TableCell>
                     <ProductStatusBadge value={product.status} />
                   </TableCell>
@@ -197,6 +205,7 @@ export function ProductSection({
                       >
                         <Eye className="h-3.5 w-3.5" /> Lihat
                       </Link>
+                      <EditProductButton product={product} />
                       <button
                         onClick={() => setDeleteTarget(product)}
                         className="inline-flex items-center gap-1 rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-50"
@@ -313,16 +322,13 @@ function CreateProductForm({
         </select>
       </label>
 
-      {/* Nama Produk */}
-      <div className="space-y-2 text-sm font-medium text-slate-700">
-        <span>Nama produk</span>
-        <input 
-          name="name" 
-          required 
-          placeholder="Contoh: Kopi Arabika"
-          className="w-full rounded-2xl border px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none" 
-        />
-      </div>
+      <FormInput
+        label="Nama produk"
+        name="name"
+        required
+        placeholder="Contoh: Kopi Arabika"
+        inputClassName="bg-white focus:bg-white"
+      />
 
       {/* Kategori */}
       <div className="space-y-2 text-sm font-medium text-slate-700">
@@ -346,29 +352,23 @@ function CreateProductForm({
         )}
       </div>
 
-      {/* Harga */}
-      <div className="space-y-2 text-sm font-medium text-slate-700">
-        <span>Harga</span>
-        <input 
-          name="price" 
-          type="number" 
-          min="1" 
-          step="100" 
-          required 
-          placeholder="10000"
-          className="w-full rounded-2xl border px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none" 
-        />
-      </div>
+      <FormInput
+        label="Harga"
+        name="price"
+        type="number"
+        step="100"
+        required
+        placeholder="10000"
+        inputClassName="bg-white focus:bg-white"
+      />
 
-      {/* Deskripsi */}
-      <div className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
-        <span>Deskripsi produk</span>
-        <textarea 
-          name="description" 
-          placeholder="Jelaskan detail produk Anda..."
-          className="min-h-24 w-full rounded-2xl border px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none resize-none" 
-        />
-      </div>
+      <FormTextarea
+        label="Deskripsi produk"
+        name="description"
+        placeholder="Jelaskan detail produk Anda..."
+        className="md:col-span-2"
+        textareaClassName="bg-white focus:bg-white"
+      />
 
       {/* Photo Upload - Aceternity FileUpload */}
       <div className="space-y-3 md:col-span-2">
@@ -377,7 +377,11 @@ function CreateProductForm({
           <span className="text-xs text-slate-400">{files.length}/5 foto</span>
         </div>
         <div className="rounded-2xl border border-dashed border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black">
-          <FileUpload onChange={handleFileUpload} />
+          <FileUpload
+            maxFiles={5}
+            accept="image/png,image/jpeg,image/webp"
+            onChange={handleFileUpload}
+          />
         </div>
       </div>
 

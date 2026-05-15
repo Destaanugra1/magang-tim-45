@@ -132,6 +132,31 @@ export const mentoringNotes = pgTable("mentoring_notes", {
   }).defaultNow().notNull(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).defaultNow().notNull(),
+});
+
+export const whatsappClicks = pgTable("whatsapp_clicks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  storeId: uuid("store_id").references(() => stores.id, { onDelete: "cascade" }),
+  productId: uuid("product_id").references(() => products.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).defaultNow().notNull(),
+});
+
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type StoreStatus = (typeof storeStatusEnum.enumValues)[number];
 export type ProductStatus = (typeof productStatusEnum.enumValues)[number];
@@ -145,3 +170,7 @@ export type ProductImage = typeof productImages.$inferSelect;
 export type NewProductImage = typeof productImages.$inferInsert;
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type WhatsappClick = typeof whatsappClicks.$inferSelect;
+export type NewWhatsappClick = typeof whatsappClicks.$inferInsert;

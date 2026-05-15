@@ -13,6 +13,7 @@ import {
   User,
   Shield,
   Tag,
+  Users,
 } from "lucide-react";
 import { logout } from "@/actions/logout";
 
@@ -64,6 +65,13 @@ export function SidebarDashboard({
         active: activeTab === "categories",
       },
       {
+        label: "Pengguna",
+        href: "#",
+        icon: <Users className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
+        onClick: () => onTabChange("users"),
+        active: activeTab === "users",
+      },
+      {
         label: "Pengaturan",
         href: "#",
         icon: <Settings className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
@@ -77,7 +85,7 @@ export function SidebarDashboard({
       return baseItems.filter((item) => item.label === "Overview" || item.label === "Pengaturan");
     }
     if (userRole === "admin") {
-      return baseItems.filter((item) => item.label !== "Kategori" && item.label !== "Kategori");
+      return baseItems.filter((item) => item.label !== "Kategori");
     }
 
     return baseItems;
