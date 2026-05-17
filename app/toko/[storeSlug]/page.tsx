@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { productImages, products, stores } from "@/db/schema";
+import { RichTextContent } from "@/components/ui/rich-text-content";
 
 export default async function StoreDetailPage({
   params,
@@ -47,9 +48,9 @@ export default async function StoreDetailPage({
               .join(", ")}
           </p>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight">{store.name}</h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            {store.description}
-          </p>
+          <div className="mt-4 max-w-3xl">
+            <RichTextContent html={store.description ?? ""} className="text-lg" />
+          </div>
           <p className="mt-4 text-sm text-slate-500">
             Alamat: {[store.address, store.village, store.district, store.regency, store.province]
               .filter(Boolean)

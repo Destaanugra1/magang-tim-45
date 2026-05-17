@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { register } from "@/actions/auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FormInput } from "@/components/ui/form-field";
+import { FormInput, FormSelect } from "@/components/ui/form-field";
 import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { defaultAuthState } from "@/lib/auth/default-auth-state";
 
@@ -33,32 +33,23 @@ export function SignUpForm() {
         label="Nama"
         name="name"
         type="text"
-        placeholder="Nama lengkap"
         required
         errors={state.errors?.name}
       />
 
-      <div>
-        <label
-          htmlFor="role"
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          Daftar sebagai
-        </label>
-        <select
-          id="role"
-          name="role"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-        >
-          <option value="customer">Customer</option>
-          <option value="pengusaha">Pengusaha / pemilik UMKM</option>
-        </select>
-        {state.errors?.role ? (
-          <p className="mt-2 text-sm text-rose-600">{state.errors.role[0]}</p>
-        ) : null}
-      </div>
+      <FormSelect
+        id="role"
+        name="role"
+        label="Daftar sebagai"
+        value={role}
+        onChange={setRole}
+        options={[
+          { value: "customer", label: "Customer" },
+          { value: "pengusaha", label: "Pengusaha / pemilik UMKM" },
+        ]}
+        required
+        errors={state.errors?.role}
+      />
 
       {role === "pengusaha" ? (
         <ImageUploadField
@@ -79,7 +70,6 @@ export function SignUpForm() {
         label="Email"
         name="email"
         type="email"
-        placeholder="nama@email.com"
         required
         errors={state.errors?.email}
       />
@@ -88,7 +78,6 @@ export function SignUpForm() {
         label="Password"
         name="password"
         type="password"
-        placeholder="Minimal 8 karakter"
         required
         errors={state.errors?.password}
       />

@@ -1,5 +1,9 @@
 "use client";
 
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheckBig, Plus, X } from "lucide-react";
@@ -414,7 +418,7 @@ function ProductRow({
         </TableCell>
         <TableCell className="max-w-sm">
           <p className="line-clamp-2 text-sm leading-6 text-slate-600">
-            {product.description || "Tidak ada deskripsi."}
+            {product.description ? stripHtml(product.description) : "Tidak ada deskripsi."}
           </p>
         </TableCell>
         <TableCell>

@@ -17,7 +17,8 @@ import {
 import { Modal } from "@/components/ui/modal";
 import { createProductFromForm, deleteProductFromForm } from "@/actions/products";
 import { EditProductButton } from "@/components/dashboard/edit-buttons";
-import { FormInput, FormTextarea } from "@/components/ui/form-field";
+import { FormInput } from "@/components/ui/form-field";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Table,
   TableBody,
@@ -362,12 +363,11 @@ function CreateProductForm({
         inputClassName="bg-white focus:bg-white"
       />
 
-      <FormTextarea
+      <RichTextEditor
         label="Deskripsi produk"
         name="description"
         placeholder="Jelaskan detail produk Anda..."
         className="md:col-span-2"
-        textareaClassName="bg-white focus:bg-white"
       />
 
       {/* Photo Upload - Aceternity FileUpload */}

@@ -16,6 +16,7 @@ function ErrorImage({ src, alt }: { src: string; alt?: string }) {
       alt={alt ?? ""}
       width={200}
       height={300}
+      unoptimized
       onError={() => {
         setError(true);
       }}

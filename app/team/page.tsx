@@ -6,9 +6,8 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 
 export default function AnggotaCard() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="pt-24 pb-14 px-6 text-center border-b border-gray-100">
+    <div className="relative min-h-screen">
+      <div className="pt-24 pb-14 px-6 text-center border-b border-white/20 backdrop-blur-sm bg-white/30">
         <FadeIn>
           <span className="inline-block rounded-full bg-slate-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
             Tim Kami
@@ -20,14 +19,12 @@ export default function AnggotaCard() {
         </FadeIn>
       </div>
 
-      {/* Cards */}
       <div className="px-6 py-14 max-w-5xl mx-auto">
-        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+        <Stagger className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2">
           {anggota.map((item) => (
             <StaggerItem key={item.id}>
-              <div className="group flex flex-col rounded-3xl border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-                {/* Photo */}
-                <div className="relative h-72 w-full bg-slate-100 overflow-hidden">
+              <div className="group flex flex-col overflow-hidden rounded-3xl border border-white/40 bg-white/80 shadow-sm backdrop-blur-md transition-shadow duration-300 hover:shadow-lg">
+                <div className="relative h-72 w-full overflow-hidden bg-slate-100">
                   <Image
                     src={item.foto}
                     alt={item.namaLengkap}
@@ -37,9 +34,8 @@ export default function AnggotaCard() {
                   />
                 </div>
 
-                {/* Info */}
                 <div className="flex flex-col gap-3 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 leading-snug">
+                  <h2 className="text-lg font-semibold leading-snug text-gray-900">
                     {item.namaLengkap}
                   </h2>
 

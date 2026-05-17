@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, useActionState } from "react";
+import { useEffect, useMemo, useState, useRef, useActionState } from "react";
 import { createStore } from "@/actions/stores";
 import { FormInput, FormTextarea } from "@/components/ui/form-field";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { StoreActionState } from "@/lib/stores/validation";
 
 type Region = {
@@ -236,7 +239,7 @@ export function StoreLocationForm({ onSuccess }: { onSuccess?: () => void } = {}
           errors={state.errors?.village}
         />
         <FormTextarea name="address" label="Alamat detail" required errors={state.errors?.address} className="sm:col-span-2" />
-        <FormTextarea name="description" label="Deskripsi toko" required errors={state.errors?.description} className="sm:col-span-2" />
+        <RichTextEditor name="description" label="Deskripsi toko" required errors={state.errors?.description} className="sm:col-span-2" />
       </div>
 
       <div className="mt-4">
@@ -270,26 +273,84 @@ function Select({
   required?: boolean;
   errors?: string[];
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const hasValue = value !== "";
+  const selected = options.find((o) => o.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
-    <label className="space-y-2 text-sm font-medium text-slate-700">
-      <span>{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        disabled={disabled}
-        required={required}
-        className={`w-full rounded-2xl border px-4 py-3 text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 ${errors ? "border-rose-300" : ""}`}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.name}
-          </option>
-        ))}
-      </select>
+    <div className="space-y-1" ref={ref}>
+      <div className="relative">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => !disabled && setOpen((v) => !v)}
+          className={cn(
+            "w-full rounded-2xl border bg-slate-50 px-4 pb-2.5 pt-6 text-left text-sm outline-none transition",
+            open ? "border-slate-400 bg-white" : "border-slate-200",
+            "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400",
+            errors?.length && "border-rose-300",
+          )}
+        >
+          <span className={hasValue ? "text-slate-900" : "text-slate-400"}>
+            {selected?.name ?? "\u00A0"}
+          </span>
+        </button>
+
+        <label
+          className={cn(
+            "pointer-events-none absolute left-4 text-sm text-slate-400 transition-all",
+            hasValue || open
+              ? "top-3.5 translate-y-0 text-[11px] text-slate-500"
+              : "top-1/2 -translate-y-1/2",
+          )}
+        >
+          {label}
+          {required && <span className="text-rose-500"> *</span>}
+        </label>
+
+        <ChevronDown
+          className={cn(
+            "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-transform duration-200",
+            open && "rotate-180",
+          )}
+        />
+
+        {open && (
+          <ul
+            role="listbox"
+            className="absolute z-50 mt-2 max-h-56 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1 shadow-lg"
+          >
+            {options.map((option) => (
+              <li
+                key={option.id}
+                role="option"
+                aria-selected={value === option.id}
+                onClick={() => { onChange(option.id); setOpen(false); }}
+                className={cn(
+                  "cursor-pointer px-4 py-2.5 text-sm transition-colors",
+                  value === option.id
+                    ? "bg-slate-100 font-medium text-slate-900"
+                    : "text-slate-700 hover:bg-slate-50",
+                )}
+              >
+                {option.name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {errors?.map((err) => (
         <p key={err} className="text-xs text-rose-600">{err}</p>
       ))}
-    </label>
+    </div>
   );
 }

@@ -10,7 +10,12 @@ import { EditProductButton, EditStoreButton } from "@/components/dashboard/edit-
 import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge, EmptyState } from "@/components/dashboard/dashboard-status";
+
 import type { Store } from "@/db/schema";
+
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
 
 export type ProductWithStore = {
   id: string;
@@ -271,7 +276,7 @@ export function AdminProductsTable({ products }: { products: ProductWithStore[] 
                       <StatusBadge value={product.status} />
                     </div>
                     <p className="mt-1 text-sm text-slate-500">{product.storeName} | {product.category} | Rp {Number(product.price).toLocaleString("id-ID")}</p>
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{product.description || "Tidak ada deskripsi."}</p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{product.description ? stripHtml(product.description) : "Tidak ada deskripsi."}</p>
                     {product.adminNote ? (
                       <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">Catatan admin: {product.adminNote}</p>
                     ) : null}

@@ -21,7 +21,6 @@ export function SignInForm() {
         name="email"
         type="email"
         required
-        placeholder="nama@email.com"
         errors={state.errors?.email}
       />
 
@@ -29,7 +28,6 @@ export function SignInForm() {
         label="Password"
         name="password"
         type="password"
-        placeholder="Minimal 8 karakter"
         required
         errors={state.errors?.password}
       />

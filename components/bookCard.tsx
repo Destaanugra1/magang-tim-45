@@ -37,6 +37,7 @@ export default function BookCard({ id, title, coverImage }: BookCardProps) {
         width={200}
         height={300}
         className="h-auto w-full rounded-xl object-cover"
+        unoptimized
         onError={() => setHidden(true)}
       />
       <div className="mt-3">

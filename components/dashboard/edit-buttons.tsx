@@ -6,6 +6,7 @@ import { Edit3 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { FileUpload } from "@/components/ui/file-upload";
 import { FormInput, FormTextarea } from "@/components/ui/form-field";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { updateStoreFromForm } from "@/actions/stores";
 import { updateProductFromForm } from "@/actions/products";
 
@@ -65,13 +66,11 @@ export function EditStoreButton({ store }: { store: StoreType }) {
             required
             inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
           />
-          <FormTextarea
+          <RichTextEditor
             label="Deskripsi"
             name="description"
-            defaultValue={store.description}
+            value={store.description}
             required
-            rows={3}
-            textareaClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <FormInput
@@ -189,12 +188,10 @@ export function EditProductButton({ product }: { product: ProductWithStore }) {
               inputClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
             />
           </div>
-          <FormTextarea
+          <RichTextEditor
             label="Deskripsi"
             name="description"
-            defaultValue={product.description}
-            rows={4}
-            textareaClassName="rounded-xl bg-white px-4 py-2.5 focus:bg-white"
+            value={product.description}
           />
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">

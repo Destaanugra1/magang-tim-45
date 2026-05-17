@@ -268,7 +268,7 @@ export async function updateProduct(
     .update(products)
     .set({
       ...payload,
-      status: "pending",
+      status: "approved",
     })
     .where(eq(products.id, productId));
 

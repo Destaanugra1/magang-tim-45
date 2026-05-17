@@ -30,6 +30,7 @@ export default async function DetailBooks({ params }: DetailAnggotaProps) {
             alt={books.title}
             fill
             className="object-cover"
+            unoptimized
           />
         </FadeIn>
 
